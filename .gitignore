@@ -2,3 +2,4 @@
 *.iml
 *.xml
 src/KeyCrypter.py
+*.pyc
