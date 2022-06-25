@@ -13,30 +13,24 @@ def init_window():
 
     win.title('EasyCrypto')
     win.geometry(str(WIDTH) + 'x' + str(HEIGHT) + '+' + str(x) + '+' + str(y))
+
     # TODO: add icon
 
     # functions
 
-    def encrypt():
-        file = fl.File('da_criptare', '.txt', 'D:\\richard\\programmazione\\python', False, True)
-
-    def decrypt():
-        pass
-
-    def decrypt_external_file():
-        pass
-
-    def share():
-        pass
+    def execute(is_encrypted, is_internal):
+        file = fl.File('da_criptare', '.txt', 'D:\\richard\\programmazione\\python', is_encrypted, is_internal)
+        print(file.is_encrypted)
+        print(file.is_internal)
 
     # widgets
 
     button_font = ('Arial', 14)
 
-    encrypt_but = tk.Button(win, text="Encrypt", font=button_font, command=encrypt)
-    decrypt_but = tk.Button(win, text="Decrypt", font=button_font, command=decrypt)
-    decrypt_external_file_but = tk.Button(win, text="Decrypt External file", font=button_font, command=decrypt_external_file)
-    share_but = tk.Button(win, text="Share", font=button_font, command=share)
+    encrypt_but = tk.Button(win, text="Encrypt", font=button_font, command=lambda: execute(False, True))
+    decrypt_but = tk.Button(win, text="Decrypt", font=button_font, command=lambda: execute(True, True))
+    decrypt_external_file_but = tk.Button(win, text="Decrypt External file", font=button_font, command=lambda: execute(True, False))
+    share_but = tk.Button(win, text="Share", font=button_font, command=lambda: execute(False, False))
 
     # placing
 
