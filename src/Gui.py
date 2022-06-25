@@ -19,9 +19,11 @@ def init_window():
     # functions
 
     def execute(is_encrypted, is_internal):
+
+        # TODO: access name, extension and location of the file via Dialog
+
         file = fl.File('da_criptare', '.txt', 'D:\\richard\\programmazione\\python', is_encrypted, is_internal)
-        print(file.is_encrypted)
-        print(file.is_internal)
+        pass
 
     # widgets
 
