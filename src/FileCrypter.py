@@ -1,19 +1,20 @@
 from os import getenv, rename
 from cryptography.fernet import Fernet
+from cryptography.fernet import InvalidToken
+from KeyCrypter import decrypt_key
 import ctypes
 
-KEY_PATH = getenv('APPDATA') + '\\EasyCrypto\\cryptKey.key'
+KEY_PATH = getenv('APPDATA') + '\\EasyCrypto\\cryptoKey.key'
 CRYPTO_EXT = '.ezcrypto'
 
 
 def encrypt(path):
 
-    if path[path.rfind('.')::] == CRYPTO_EXT:
+    if is_already_encrypted(path):
         ctypes.windll.user32.MessageBoxW(0, "Questo file è già stato cryptato!", "Error!")
         return
 
-    with open(KEY_PATH, 'rb') as key_path:
-        key = key_path.read()
+    key = str.encode(str(decrypt_key()))
 
     crypter = Fernet(key)
 
@@ -32,24 +33,25 @@ def encrypt(path):
 
 def decrypt(path):
 
-    if path[path.rfind('.')::] != CRYPTO_EXT:
-        ctypes.windll.user32.MessageBoxW(0, "Questo file non è cryptato!", "Error!")
-        return
-
-    with open(KEY_PATH, 'rb') as key_path:
-        key = key_path.read()
+    key = str.encode(decrypt_key())
 
     decrypter = Fernet(key)
 
     with open(path, 'rb') as file:
         encrypted_file = file.read()
 
-    decrypted_file = decrypter.decrypt(encrypted_file)
+    try:
+        decrypted_file = decrypter.decrypt(encrypted_file)
+    except InvalidToken:
+        ctypes.windll.user32.MessageBoxW(0, "Questo file non è cryptato!", "Error!")
+        return
 
     with open(path, 'wb') as file_to_decrypt:
         file_to_decrypt.write(decrypted_file)
 
-    rename(path, path[:path.rfind('.'):])
+    if path[path.rfind('.')::] == CRYPTO_EXT:
+        rename(path, path[:path.rfind('.'):])
+
     ctypes.windll.user32.MessageBoxW(0, "File decryptato con successo", "Success!")
 
 
@@ -59,3 +61,21 @@ def decrypt_external_file(path):
 
 def share(path):
     print("share")
+
+
+def is_already_encrypted(path):
+
+    key = str.encode(str(decrypt_key()))
+
+    decrypter = Fernet(key)
+
+    with open(path, 'rb') as file:
+        encrypted_file = file.read()
+
+    try:
+        decrypter.decrypt(encrypted_file)
+    except InvalidToken:
+        return False
+
+    return True
+

@@ -22,7 +22,7 @@ def init_window():
 
     def execute(is_encrypted, is_internal):
 
-        path = filedialog.askopenfilename(title='Seleziona il file da criptare', filetypes=[('Tutti i file', '*.*')])
+        path = filedialog.askopenfilename(title='Seleziona il file...', filetypes=[('Tutti i file', '*.*')])
 
         if not os.path.exists(path):
             return
