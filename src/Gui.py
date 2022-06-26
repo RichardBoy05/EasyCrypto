@@ -1,5 +1,7 @@
 import tkinter as tk
-import File as fl
+from tkinter import filedialog
+import os.path
+import FileCrypter
 
 
 def init_window():
@@ -20,10 +22,26 @@ def init_window():
 
     def execute(is_encrypted, is_internal):
 
-        # TODO: access name, extension and location of the file via Dialog
+        path = filedialog.askopenfilename(title='Seleziona il file da criptare', filetypes=[('Tutti i file', '*.*')])
 
-        file = fl.File('da_criptare', '.txt', 'D:\\richard\\programmazione\\python', is_encrypted, is_internal)
-        pass
+        if not os.path.exists(path):
+            return
+
+        if not is_encrypted and is_internal:
+            FileCrypter.encrypt(path)
+            return
+
+        if is_encrypted and is_internal:
+            FileCrypter.decrypt(path)
+            return
+
+        if is_encrypted and not is_internal:
+            FileCrypter.decrypt_external_file(path)
+            return
+
+        if not is_encrypted and not is_internal:
+            FileCrypter.share(path)
+            return
 
     # widgets
 
@@ -31,7 +49,8 @@ def init_window():
 
     encrypt_but = tk.Button(win, text="Encrypt", font=button_font, command=lambda: execute(False, True))
     decrypt_but = tk.Button(win, text="Decrypt", font=button_font, command=lambda: execute(True, True))
-    decrypt_external_file_but = tk.Button(win, text="Decrypt External file", font=button_font, command=lambda: execute(True, False))
+    decrypt_external_file_but = tk.Button(win, text="Decrypt External file", font=button_font,
+                                          command=lambda: execute(True, False))
     share_but = tk.Button(win, text="Share", font=button_font, command=lambda: execute(False, False))
 
     # placing
