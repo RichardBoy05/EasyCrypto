@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog
-import os.path
 import FileCrypter
+from Notifications import encrypted_successfully_alert, decrypted_successfully_alert
 
 
 def init_window():
@@ -22,21 +22,37 @@ def init_window():
 
     def execute(is_encrypted, is_internal):
 
-        path = filedialog.askopenfilename(title='Seleziona il file...', filetypes=[('Tutti i file', '*.*')])
+        files = None
 
-        if not os.path.exists(path):
+        if is_encrypted and not is_internal:
+            files = [('Archivio EasyCrypto', '*' + FileCrypter.CRYPTO_ARCHIVE_EXT)]
+        else:
+            files = [('Tutti i file', '*.*')]
+
+        path = filedialog.askopenfilenames(title='Seleziona uno o più file...', filetypes=files)
+
+        if not path:
             return
 
         if not is_encrypted and is_internal:
-            FileCrypter.encrypt(path)
+            has_been_encrypted = None
+            for i in path:
+                has_been_encrypted = FileCrypter.encrypt(i)
+            if has_been_encrypted:
+                encrypted_successfully_alert(len(path))
             return
 
         if is_encrypted and is_internal:
-            FileCrypter.decrypt(path)
+            has_been_decrypted = None
+            for i in path:
+                has_been_decrypted = FileCrypter.decrypt(i)
+            if has_been_decrypted:
+                decrypted_successfully_alert(len(path))
             return
 
         if is_encrypted and not is_internal:
-            FileCrypter.decrypt_external_file(path)
+            for i in path:
+                FileCrypter.decrypt_external_file(i)
             return
 
         if not is_encrypted and not is_internal:
