@@ -2,8 +2,8 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import Label
 import FileCrypter
-from Notifications import encrypted_successfully_alert, decrypted_successfully_alert
-from Links import *
+from Alerts import encrypted_successfully_alert, decrypted_successfully_alert
+from Links import search_info, search_github
 
 
 def init_window():

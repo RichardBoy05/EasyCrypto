@@ -1,10 +1,7 @@
-from os import getenv, rename, remove, listdir
+from os import getenv, remove, rename, listdir
 from os.path import isfile, join
-from cryptography.fernet import Fernet
-from cryptography.fernet import InvalidToken
-from KeyCrypter import decrypt_key
-from CrypterUtils import get_crypted_data, is_already_encrypted
-from Notifications import already_encrypted_alert, not_encrypted_alert, archive_created_alert, archive_extracted_alert
+from CrypterUtils import get_crypted_data, is_already_encrypted, renaming_after_decryption
+from Alerts import already_encrypted_alert, archive_created_alert, archive_extracted_alert, not_an_archive_alert
 from ZipPassword import password as zip_password
 from tkinter.filedialog import asksaveasfilename, askdirectory
 import pyzipper
@@ -19,7 +16,7 @@ def encrypt(path):
         already_encrypted_alert(path[path.rfind('/') + 1::])
         return False
 
-    outcome = get_crypted_data(path, 1)
+    outcome = get_crypted_data(path, None, 1)
 
     if outcome == 1:
         rename(path, path + CRYPTO_EXT)
@@ -30,11 +27,10 @@ def encrypt(path):
 
 def decrypt(path):
 
-    outcome = get_crypted_data(path, 3)
+    outcome = get_crypted_data(path, None, 3)
 
     if outcome == 3:
-        if path[path.rfind('.')::] == CRYPTO_EXT:
-            rename(path, path[:path.rfind('.'):])
+        renaming_after_decryption(path, CRYPTO_EXT)
         return True
 
     return False
@@ -42,27 +38,27 @@ def decrypt(path):
 
 def decrypt_with_external_key(key_path, file_path):
 
-    key = str.encode(decrypt_key(key_path))
+    outcome = get_crypted_data(file_path, key_path, 3)
 
-    decrypter = Fernet(key)
+    if outcome == 3:
+        renaming_after_decryption(file_path, CRYPTO_EXT)
+        return True
 
-    with open(file_path, 'rb') as file:
-        encrypted_file = file.read()
-
-    try:
-        decrypted_file = decrypter.decrypt(encrypted_file)
-    except InvalidToken:
-        not_encrypted_alert(file_path[file_path.rfind('/') + 1::])
-        return False
-
-    with open(file_path, 'wb') as file_to_decrypt:
-        file_to_decrypt.write(decrypted_file)
-
-    if file_path[file_path.rfind('.')::] == CRYPTO_EXT:
-        rename(file_path, file_path[:file_path.rfind('.'):])
+    return False
 
 
 def decrypt_external_file(path):
+
+    point_index = path.rfind('.')
+
+    if point_index == -1:
+        not_an_archive_alert(CRYPTO_ARCHIVE_EXT)
+        return
+
+    if path[point_index::] != CRYPTO_ARCHIVE_EXT:
+        not_an_archive_alert(CRYPTO_ARCHIVE_EXT)
+        return
+
     directory = askdirectory(title="Seleziona la cartella dove salvare i file decryptati...")
 
     if not directory:
@@ -74,12 +70,15 @@ def decrypt_external_file(path):
     files_and_folders = listdir(directory)
     for i in files_and_folders:
         file = join(directory, i)
-        if isfile(file):
-            if file[file.rfind('.')::] == CRYPTO_EXT:
-                decrypt_with_external_key(directory + '/ezcrypto', file)
+        if isfile(file) and file[file.rfind('.')::] == CRYPTO_EXT:
+            outcome = decrypt_with_external_key(directory + '/ezcrypto', file)
+            if not outcome:
+                return False
 
     remove(directory + '/ezcrypto')
     archive_extracted_alert(path[path.rfind('/') + 1::])
+
+    return True
 
 
 def share(path):
