@@ -1,5 +1,5 @@
 from cryptography.fernet import Fernet
-from os import getenv, path, mkdir, system
+from os import getenv, mkdir, path, system
 from KeyCrypter import encrypt_key
 
 

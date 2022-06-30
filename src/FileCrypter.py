@@ -3,6 +3,7 @@ from os.path import isfile, join
 from cryptography.fernet import Fernet
 from cryptography.fernet import InvalidToken
 from KeyCrypter import decrypt_key
+from CrypterUtils import get_crypted_data, is_already_encrypted
 from Notifications import already_encrypted_alert, not_encrypted_alert, archive_created_alert, archive_extracted_alert
 from ZipPassword import password as zip_password
 from tkinter.filedialog import asksaveasfilename, askdirectory
@@ -15,47 +16,28 @@ CRYPTO_ARCHIVE_EXT = '.ezcryptozip'
 
 def encrypt(path):
     if is_already_encrypted(path):
-        already_encrypted_alert(path[path.rfind('/') + 1:path.rfind('.'):])
+        already_encrypted_alert(path[path.rfind('/') + 1::])
         return False
 
-    key = str.encode(str(decrypt_key(None)))
+    outcome = get_crypted_data(path, 1)
 
-    crypter = Fernet(key)
+    if outcome == 1:
+        rename(path, path + CRYPTO_EXT)
+        return True
 
-    with open(path, 'rb') as file:
-        original_file = file.read()
-
-    encrypted_file = crypter.encrypt(original_file)
-
-    with open(path, 'wb') as file_to_encrypt:
-        file_to_encrypt.write(encrypted_file)
-
-    rename(path, path + CRYPTO_EXT)
-
-    return True
+    return False
 
 
 def decrypt(path):
-    key = str.encode(decrypt_key(None))
 
-    decrypter = Fernet(key)
+    outcome = get_crypted_data(path, 3)
 
-    with open(path, 'rb') as file:
-        encrypted_file = file.read()
+    if outcome == 3:
+        if path[path.rfind('.')::] == CRYPTO_EXT:
+            rename(path, path[:path.rfind('.'):])
+        return True
 
-    try:
-        decrypted_file = decrypter.decrypt(encrypted_file)
-    except InvalidToken:
-        not_encrypted_alert(path[path.rfind('/') + 1::])
-        return False
-
-    with open(path, 'wb') as file_to_decrypt:
-        file_to_decrypt.write(decrypted_file)
-
-    if path[path.rfind('.')::] == CRYPTO_EXT:
-        rename(path, path[:path.rfind('.'):])
-
-    return True
+    return False
 
 
 def decrypt_with_external_key(key_path, file_path):
@@ -127,18 +109,3 @@ def share(path):
 
     archive_created_alert(file2save[file2save.rfind('/') + 1::])
 
-
-def is_already_encrypted(path):
-    key = str.encode(str(decrypt_key(None)))
-
-    decrypter = Fernet(key)
-
-    with open(path, 'rb') as file:
-        encrypted_file = file.read()
-
-    try:
-        decrypter.decrypt(encrypted_file)
-    except InvalidToken:
-        return False
-
-    return True

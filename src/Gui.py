@@ -3,13 +3,15 @@ from tkinter import filedialog
 from tkinter import Label
 import FileCrypter
 from Notifications import encrypted_successfully_alert, decrypted_successfully_alert
+from Links import *
 
 
 def init_window():
     win = tk.Tk()
 
-    WIDTH = 675
-    HEIGHT = 550
+    WIDTH = 450
+    HEIGHT = 450
+
     WINDOW_ICON = tk.PhotoImage(file='res/logo.png', master=win)
     BACKGROUND_IMAGE = tk.PhotoImage(file='res/background.png', master=win)
     CRYPT_IMAGE = tk.PhotoImage(file='res/crypt.png', master=win)
@@ -20,6 +22,10 @@ def init_window():
     SHARE_IMAGE_HOVERED = tk.PhotoImage(file='res/share_hovered.png', master=win)
     DECRYPT_EXTERNAL_FILE_IMAGE = tk.PhotoImage(file='res/decrypt_external_file.png', master=win)
     DECRYPT_EXTERNAL_FILE_IMAGE_HOVERED = tk.PhotoImage(file='res/decrypt_external_file_hovered.png', master=win)
+    INFO_IMAGE = tk.PhotoImage(file='res/info.png', master=win)
+    INFO_IMAGE_HOVERED = tk.PhotoImage(file='res/info_hovered.png', master=win)
+    GITHUB_IMAGE = tk.PhotoImage(file='res/github.png', master=win)
+    GITHUB_IMAGE_HOVERED = tk.PhotoImage(file='res/github_hovered.png', master=win)
 
     x = int(win.winfo_screenwidth() / 2 - (WIDTH / 2))
     y = int(win.winfo_screenheight() / 2 - (HEIGHT / 2))
@@ -77,6 +83,8 @@ def init_window():
     decrypt_but = tk.Button(win, image=DECRYPT_IMAGE, borderwidth=0, command=lambda: execute(True, True))
     share_but = tk.Button(win, image=SHARE_IMAGE, borderwidth=0, command=lambda: execute(False, False))
     decrypt_external_file_but = tk.Button(win, image=DECRYPT_EXTERNAL_FILE_IMAGE, borderwidth=0, command=lambda: execute(True, False))
+    info_but = tk.Button(win, image=INFO_IMAGE, borderwidth=0, bg='#cbcbcb', command=search_info)
+    github_but = tk.Button(win, image=GITHUB_IMAGE, borderwidth=0, bg='#cbcbcb', command=search_github)
 
     # Hover events
 
@@ -88,13 +96,19 @@ def init_window():
     share_but.bind("<Leave>", lambda x: share_but.config(image=SHARE_IMAGE))
     decrypt_external_file_but.bind("<Enter>", lambda x: decrypt_external_file_but.config(image=DECRYPT_EXTERNAL_FILE_IMAGE_HOVERED))
     decrypt_external_file_but.bind("<Leave>", lambda x: decrypt_external_file_but.config(image=DECRYPT_EXTERNAL_FILE_IMAGE))
+    info_but.bind("<Enter>", lambda x: info_but.config(image=INFO_IMAGE_HOVERED))
+    info_but.bind("<Leave>", lambda x: info_but.config(image=INFO_IMAGE))
+    github_but.bind("<Enter>", lambda x: github_but.config(image=GITHUB_IMAGE_HOVERED))
+    github_but.bind("<Leave>", lambda x: github_but.config(image=GITHUB_IMAGE))
 
     # placing
 
     background_label.place(x=-2, y=-2)
-    encrypt_but.place(x=40, y=225)
-    decrypt_but.place(x=300, y=225)
-    decrypt_external_file_but.place(x=300, y=350)
-    share_but.place(x=40, y=350)
+    encrypt_but.place(x=34, y=230)
+    decrypt_but.place(x=244, y=230)
+    decrypt_external_file_but.place(x=244, y=330)
+    share_but.place(x=34, y=330)
+    info_but.place(x=391, y=428)
+    github_but.place(x=419, y=428)
 
     win.mainloop()
