@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import Label
 import FileCrypter
-from Alerts import encrypted_successfully_alert, decrypted_successfully_alert
+from Alerts import encrypted_successfully_alert, decrypted_successfully_alert, archive_extracted_alert, archive_created_alert
 from Links import search_info, search_github
 
 
@@ -40,40 +40,44 @@ def init_window():
     def execute(is_encrypted, is_internal):
 
         files = None
+        path = None
 
         if is_encrypted and not is_internal:
             files = [('Archivio EasyCrypto', '*' + FileCrypter.CRYPTO_ARCHIVE_EXT)]
+            path = filedialog.askopenfilename(title='Seleziona un archivio da decriptare...', filetypes=files)
         else:
             files = [('Tutti i file', '*.*')]
-
-        path = filedialog.askopenfilenames(title='Seleziona uno o più file...', filetypes=files)
+            path = filedialog.askopenfilenames(title='Seleziona uno o più file...', filetypes=files)
 
         if not path:
             return
 
         if not is_encrypted and is_internal:
-            has_been_encrypted = None
+            has_been_encrypted = []
             for i in path:
-                has_been_encrypted = FileCrypter.encrypt(i)
-            if has_been_encrypted:
+                has_been_encrypted.append(FileCrypter.encrypt(i, False))
+            if all(has_been_encrypted):
                 encrypted_successfully_alert(len(path))
             return
 
         if is_encrypted and is_internal:
-            has_been_decrypted = None
+            has_been_decrypted = []
             for i in path:
-                has_been_decrypted = FileCrypter.decrypt(i)
-            if has_been_decrypted:
+                has_been_decrypted.append(FileCrypter.decrypt(i))
+            if all(has_been_decrypted):
                 decrypted_successfully_alert(len(path))
             return
 
         if is_encrypted and not is_internal:
-            for i in path:
-                FileCrypter.decrypt_external_file(i)
+            has_been_decrypted = FileCrypter.decrypt_external_file(path)
+            if has_been_decrypted:
+                archive_extracted_alert(path[path.rfind('/') + 1::])
             return
 
         if not is_encrypted and not is_internal:
-            FileCrypter.share(path)
+            has_been_shared = FileCrypter.share(path)
+            if has_been_shared:
+                archive_created_alert(file2save[file2save.rfind('/') + 1::])
             return
 
     # widgets
@@ -82,7 +86,8 @@ def init_window():
     encrypt_but = tk.Button(win, image=CRYPT_IMAGE, borderwidth=0, command=lambda: execute(False, True))
     decrypt_but = tk.Button(win, image=DECRYPT_IMAGE, borderwidth=0, command=lambda: execute(True, True))
     share_but = tk.Button(win, image=SHARE_IMAGE, borderwidth=0, command=lambda: execute(False, False))
-    decrypt_external_file_but = tk.Button(win, image=DECRYPT_EXTERNAL_FILE_IMAGE, borderwidth=0, command=lambda: execute(True, False))
+    decrypt_external_file_but = tk.Button(win, image=DECRYPT_EXTERNAL_FILE_IMAGE, borderwidth=0,
+                                          command=lambda: execute(True, False))
     info_but = tk.Button(win, image=INFO_IMAGE, borderwidth=0, bg='#cbcbcb', command=search_info)
     github_but = tk.Button(win, image=GITHUB_IMAGE, borderwidth=0, bg='#cbcbcb', command=search_github)
 
@@ -94,8 +99,10 @@ def init_window():
     decrypt_but.bind("<Leave>", lambda x: decrypt_but.config(image=DECRYPT_IMAGE))
     share_but.bind("<Enter>", lambda x: share_but.config(image=SHARE_IMAGE_HOVERED))
     share_but.bind("<Leave>", lambda x: share_but.config(image=SHARE_IMAGE))
-    decrypt_external_file_but.bind("<Enter>", lambda x: decrypt_external_file_but.config(image=DECRYPT_EXTERNAL_FILE_IMAGE_HOVERED))
-    decrypt_external_file_but.bind("<Leave>", lambda x: decrypt_external_file_but.config(image=DECRYPT_EXTERNAL_FILE_IMAGE))
+    decrypt_external_file_but.bind("<Enter>", lambda x: decrypt_external_file_but.config(
+        image=DECRYPT_EXTERNAL_FILE_IMAGE_HOVERED))
+    decrypt_external_file_but.bind("<Leave>",
+                                   lambda x: decrypt_external_file_but.config(image=DECRYPT_EXTERNAL_FILE_IMAGE))
     info_but.bind("<Enter>", lambda x: info_but.config(image=INFO_IMAGE_HOVERED))
     info_but.bind("<Leave>", lambda x: info_but.config(image=INFO_IMAGE))
     github_but.bind("<Enter>", lambda x: github_but.config(image=GITHUB_IMAGE_HOVERED))

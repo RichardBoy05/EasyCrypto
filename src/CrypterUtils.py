@@ -2,7 +2,7 @@ from cryptography.fernet import Fernet
 from cryptography.fernet import InvalidToken
 from os import rename
 from KeyCrypter import decrypt_key
-from Alerts import not_encrypted_alert, permission_error_alert, general_exception_alert
+from Alerts import not_encrypted_alert, permission_error_alert, general_exception_alert, not_an_archive_alert
 
 
 def get_crypted_data(path, keypath, action):  # actions: 1 -> encrypt; 2 -> check; 3 -> decrypt
@@ -73,6 +73,17 @@ def is_already_encrypted(path):
 
 
 def renaming_after_decryption(path, extension):
-
     if path[path.rfind('.')::] == extension:
         rename(path, path[:path.rfind('.'):])
+
+
+def check_archive_extension(point_index, extension, path):
+    if point_index == -1:
+        not_an_archive_alert(extension)
+        return False
+
+    if path[point_index::] != extension:
+        not_an_archive_alert(extension)
+        return False
+
+    return True

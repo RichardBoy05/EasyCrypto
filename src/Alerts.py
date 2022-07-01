@@ -17,7 +17,9 @@ def already_encrypted_alert(name):
 
 def not_encrypted_alert(name):
     ctypes.windll.user32.MessageBoxW(0, "Il file '" + name + "' non è cryptato, oppure"
-                                                             " la chiave che stai utilizando non è corretta!", "Error!", 16)
+                                                             " la chiave che stai utilizando non è corretta!", "Error!",
+                                     16)
+
 
 def archive_created_alert(name):
     ctypes.windll.user32.MessageBoxW(0, "Archivio '" + name + "' creato con successo!", "Success!", 64)
@@ -44,3 +46,7 @@ def general_exception_alert(exception):
 def not_an_archive_alert(extension):
     ctypes.windll.user32.MessageBoxW(0, "L'estensione del file deve corrispondere con '" + extension + "'",
                                      "Error!", 16)
+
+
+def invalid_archive_alert():
+    ctypes.windll.user32.MessageBoxW(0, "Il file selezionato non è un archivio valido!", "Error!", 16)
