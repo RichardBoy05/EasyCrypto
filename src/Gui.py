@@ -2,7 +2,8 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import Label
 import FileCrypter
-from Alerts import encrypted_successfully_alert, decrypted_successfully_alert, archive_extracted_alert, archive_created_alert
+from Alerts import encrypted_successfully_alert, decrypted_successfully_alert, archive_extracted_alert, \
+    archive_created_alert
 from Links import search_info, search_github
 
 
@@ -26,6 +27,8 @@ def init_window():
     INFO_IMAGE_HOVERED = tk.PhotoImage(file='res/info_hovered.png', master=win)
     GITHUB_IMAGE = tk.PhotoImage(file='res/github.png', master=win)
     GITHUB_IMAGE_HOVERED = tk.PhotoImage(file='res/github_hovered.png', master=win)
+    SETTINGS_IMAGE = tk.PhotoImage(file='res/settings.png', master=win)
+    SETTINGS_IMAGE_HOVERED = tk.PhotoImage(file='res/settings_hovered.png', master=win)
 
     x = int(win.winfo_screenwidth() / 2 - (WIDTH / 2))
     y = int(win.winfo_screenheight() / 2 - (HEIGHT / 2))
@@ -38,9 +41,6 @@ def init_window():
     # functions
 
     def execute(is_encrypted, is_internal):
-
-        files = None
-        path = None
 
         if is_encrypted and not is_internal:
             files = [('Archivio EasyCrypto', '*' + FileCrypter.CRYPTO_ARCHIVE_EXT)]
@@ -76,9 +76,12 @@ def init_window():
 
         if not is_encrypted and not is_internal:
             has_been_shared = FileCrypter.share(path)
-            if has_been_shared:
-                archive_created_alert(file2save[file2save.rfind('/') + 1::])
+            if has_been_shared[0]:
+                archive_created_alert(has_been_shared[1][has_been_shared[1].rfind('/') + 1::])
             return
+
+    def show_settings():
+        pass
 
     # widgets
 
@@ -90,6 +93,7 @@ def init_window():
                                           command=lambda: execute(True, False))
     info_but = tk.Button(win, image=INFO_IMAGE, borderwidth=0, bg='#cbcbcb', command=search_info)
     github_but = tk.Button(win, image=GITHUB_IMAGE, borderwidth=0, bg='#cbcbcb', command=search_github)
+    settings_but = tk.Button(win, image=SETTINGS_IMAGE, borderwidth=0, bg='#cbcbcb', command=show_settings)
 
     # Hover events
 
@@ -107,6 +111,8 @@ def init_window():
     info_but.bind("<Leave>", lambda x: info_but.config(image=INFO_IMAGE))
     github_but.bind("<Enter>", lambda x: github_but.config(image=GITHUB_IMAGE_HOVERED))
     github_but.bind("<Leave>", lambda x: github_but.config(image=GITHUB_IMAGE))
+    settings_but.bind("<Enter>", lambda x: settings_but.config(image=SETTINGS_IMAGE_HOVERED))
+    settings_but.bind("<Leave>", lambda x: settings_but.config(image=SETTINGS_IMAGE))
 
     # placing
 
@@ -115,7 +121,8 @@ def init_window():
     decrypt_but.place(x=244, y=230)
     decrypt_external_file_but.place(x=244, y=330)
     share_but.place(x=34, y=330)
-    info_but.place(x=391, y=428)
-    github_but.place(x=419, y=428)
+    info_but.place(x=363, y=428)
+    github_but.place(x=391, y=428)
+    settings_but.place(x=419, y=428)
 
     win.mainloop()

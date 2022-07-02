@@ -1,6 +1,6 @@
-from os import getenv, remove, rename, listdir
+from os import getenv, remove, listdir
 from os.path import isfile, join
-from CrypterUtils import get_crypted_data, is_already_encrypted, renaming_after_decryption, check_archive_extension
+from CrypterUtils import get_crypted_data, is_already_encrypted, renaming_file, check_archive_extension
 from Alerts import already_encrypted_alert, invalid_archive_alert
 from ZipPassword import password as zip_password
 from tkinter.filedialog import asksaveasfilename, askdirectory
@@ -22,7 +22,8 @@ def encrypt(path, bypass_alert):
     outcome = get_crypted_data(path, None, 1)
 
     if outcome == 1:
-        rename(path, path + CRYPTO_EXT)
+        renaming_file(path, CRYPTO_EXT, True)
+
         return True
 
     return False
@@ -32,7 +33,7 @@ def decrypt(path):
     outcome = get_crypted_data(path, None, 3)
 
     if outcome == 3:
-        renaming_after_decryption(path, CRYPTO_EXT)
+        renaming_file(path, CRYPTO_EXT, False)
         return True
 
     return False
@@ -42,7 +43,7 @@ def decrypt_with_external_key(key_path, file_path):
     outcome = get_crypted_data(file_path, key_path, 3)
 
     if outcome == 3:
-        renaming_after_decryption(file_path, CRYPTO_EXT)
+        renaming_file(file_path, CRYPTO_EXT, False)
         return True
 
     return False
@@ -84,7 +85,7 @@ def share(path):
                                   defaultextension=filetypes)
 
     if not file2save:
-        return False
+        return False, file2save
 
     if not file2save[file2save.rfind('.')::] == CRYPTO_ARCHIVE_EXT:
         file2save += CRYPTO_ARCHIVE_EXT
@@ -116,4 +117,4 @@ def share(path):
 
             index += 1
 
-    return True
+    return True, file2save
