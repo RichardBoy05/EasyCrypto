@@ -58,3 +58,7 @@ def empty_box_alert(box):
 
 def different_passwords_alert():
     ctypes.windll.user32.MessageBoxW(0, "Le due password non corrispondono!", "Error!", 16)
+
+
+def invalid_password():
+    ctypes.windll.user32.MessageBoxW(0, "La password non è corretta!", "Error!", 16)

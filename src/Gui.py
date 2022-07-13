@@ -62,7 +62,7 @@ def init_window():
                 return False
 
             for i in path:
-                has_been_encrypted.append(FileCrypter.encrypt(i, False, password, keep_copy))
+                has_been_encrypted.append(FileCrypter.encrypt(i, password, keep_copy))
             if all(has_been_encrypted):
                 encrypted_successfully_alert(len(path))
             return

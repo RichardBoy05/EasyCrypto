@@ -7,11 +7,12 @@ from cryptography.exceptions import InvalidKey
 from os import getenv, rename, chmod, system, urandom
 from stat import S_IREAD, S_IWRITE
 from os.path import exists, join
-from KeyCrypter import encrypt_key, decrypt_key
-from Alerts import not_encrypted_alert, permission_error_alert, general_exception_alert, not_an_archive_alert
-import json
+from KeyCrypter import decrypt_key
+from Alerts import not_encrypted_alert, permission_error_alert, general_exception_alert, not_an_archive_alert, invalid_password
+from JSONUtils import store_data, parse_json
 
 PATH = getenv('APPDATA') + "\\EasyCrypto"
+STORAGE = PATH + '\\store.json'
 
 
 def get_crypted_data(path, keypath, action):  # actions: 1 -> encrypt; 2 -> check; 3 -> decrypt
@@ -82,6 +83,7 @@ def is_already_encrypted(path):
 
 
 def encrypter_with_password(path, password, keep_copy):
+
     salt = urandom(16)
 
     kdf = PBKDF2HMAC(
@@ -99,6 +101,8 @@ def encrypter_with_password(path, password, keep_copy):
     encrypter = Fernet(key)
     encrypted_content = encrypter.encrypt(original_file)
 
+    store_data(STORAGE, encrypted_content, salt, key)
+
     with open(path, 'wb') as file:
         file.write(encrypted_content)
 
@@ -109,42 +113,15 @@ def encrypter_with_password(path, password, keep_copy):
         with open(path, "wb") as file:
             file.write(original_file)
 
-    # storing
-
-    storage = PATH + '\\store.json'
-    record = {encrypted_content.decode('utf-8'): [salt.decode('latin1'), encrypt_key(key).decode('utf-8')]}
-
-    system("attrib -h " + storage)
-    chmod(storage, S_IWRITE)
-
-    unfix_json_format(storage)
-
-    with open(storage, 'a') as file:
-        file.write(json.dumps(record, indent=4) + '\n')
-
-    fix_json_format(storage)
-
-    system("attrib +h " + storage)
-    chmod(storage, S_IREAD)
-
 
 def decrypter_with_password(path, password, keep_copy):
-    storage = PATH + '\\store.json'
+
     chmod(path, S_IWRITE)
 
     with open(path, 'rb') as file:
         file_content = file.read().decode('utf-8')
 
-    system("attrib -h " + storage)
-    chmod(storage, S_IWRITE)
-
-    with open(storage, 'r') as file:
-        db = json.load(file)
-
-    pair = parse_json(file_content, db)
-
-    system("attrib +h " + storage)
-    chmod(storage, S_IREAD)
+    pair = parse_json(file_content, STORAGE)
 
     salt = pair[0].encode('latin1')
     key = decrypt_key(pair[1].encode('utf-8'))
@@ -159,7 +136,7 @@ def decrypter_with_password(path, password, keep_copy):
     try:
         kdf.verify(password, base64.urlsafe_b64decode(key))
     except InvalidKey:
-        print("Le due password non corrispondono!")
+        invalid_password()
         return False
 
     # decryption
@@ -180,47 +157,6 @@ def decrypter_with_password(path, password, keep_copy):
         with open(path, "wb") as file:
             file.write(original_file)
             chmod(path, S_IREAD)
-
-
-def parse_json(content, db):
-
-    dic = db[0]
-
-    for i in db:
-        dic |= i
-
-    try:
-        return dic[content]
-    except KeyError:
-        print("La chiave non esiste!")
-        return None
-
-
-def fix_json_format(path):
-    with open(path, 'r') as file:
-        content = file.read()
-
-    content = content.replace('}', '},')
-    content = content[:-2:]
-    content = '[' + content + ']'
-
-    with open(path, 'w') as file:
-        file.write(content)
-
-
-def unfix_json_format(path):
-    with open(path, 'r') as file:
-        content = file.read()
-
-    if len(content) == 0 or content[0] != '[':
-        return
-
-    content = content.replace('},', '}')
-    content = content[1:-1:]
-    content += '\n'
-
-    with open(path, 'w') as file:
-        file.write(content)
 
 
 def renaming_file(path, extension, to_encrypt):  # if to_encrypt is false, then it is a file to decrypt

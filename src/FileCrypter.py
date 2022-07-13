@@ -12,11 +12,10 @@ CRYPTO_EXT = '.ezcrypto'
 CRYPTO_ARCHIVE_EXT = '.ezcryptozip'
 
 
-def encrypt(path, bypass_alert, password, keep_copy):
+def encrypt(path, password, keep_copy):
 
     # if is_already_encrypted(path):
-    #     if not bypass_alert:
-    #         already_encrypted_alert(path[path.rfind('/') + 1::])
+    #     already_encrypted_alert(path[path.rfind('/') + 1::])
     #     return False
 
     encrypter_with_password(path, password.encode('utf-8'), keep_copy)
