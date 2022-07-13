@@ -1,7 +1,5 @@
 from Gui import init_window
-from KeyGenerator import generate_key
+from Setup import setup
 
-# passEntry = Entry(app, textvariable=password, show=u'\u2022')
-
-generate_key()
+setup()
 init_window()

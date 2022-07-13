@@ -50,3 +50,11 @@ def not_an_archive_alert(extension):
 
 def invalid_archive_alert():
     ctypes.windll.user32.MessageBoxW(0, "Il file selezionato non è un archivio valido!", "Error!", 16)
+
+
+def empty_box_alert(box):
+    ctypes.windll.user32.MessageBoxW(0, "Il campo \"" + box + "\" è vuoto!", "Error!", 16)
+
+
+def different_passwords_alert():
+    ctypes.windll.user32.MessageBoxW(0, "Le due password non corrispondono!", "Error!", 16)

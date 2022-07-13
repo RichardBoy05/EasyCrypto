@@ -1,0 +1,112 @@
+import tkinter as tk
+from tkinter import Label, Button, Entry, Checkbutton
+from Alerts import empty_box_alert, different_passwords_alert
+
+
+def ask_password(main_win, to_encrypt, one_file):
+    win = tk.Toplevel(main_win)
+    win.grab_set()
+
+    WIDTH = 265
+    HEIGHT = 145
+
+    WINDOW_ICON = tk.PhotoImage(file='res/logo.png', master=win)
+    PADLOCK_CLOSED = tk.PhotoImage(file='res/padlock_closed.png', master=win)
+    PADLOCK_CLOSED_HOVERED = tk.PhotoImage(file='res/padlock_closed_hovered.png', master=win)
+    PADLOCK_OPENED = tk.PhotoImage(file='res/padlock_opened.png', master=win)
+    PADLOCK_OPENED_HOVERED = tk.PhotoImage(file='res/padlock_opened_hovered.png', master=win)
+    SHOW = tk.PhotoImage(file='res/show.png', master=win)
+    HIDE = tk.PhotoImage(file='res/hide.png', master=win)
+
+    x = int(win.winfo_screenwidth() / 2 - (WIDTH / 2))
+    y = int(win.winfo_screenheight() / 2 - (HEIGHT / 2))
+
+    win.title('EasyCrypto')
+    win.geometry(str(WIDTH) + 'x' + str(HEIGHT) + '+' + str(x) + '+' + str(y))
+    win.resizable(0, 0)
+    win.iconphoto(True, WINDOW_ICON)
+
+    def_font = ('Arial Baltic', 10)
+
+    # functions
+
+    def execute():
+
+        execute.password = None
+
+        if not pass_box.get():
+            empty_box_alert("Password")
+            execute.password = None
+            return
+
+        if not confirmpass_box.get():
+            empty_box_alert("Conferma password")
+            execute.password = None
+            return
+
+        if pass_box.get() != confirmpass_box.get():
+            different_passwords_alert()
+            execute.password = None
+            return
+
+        execute.password = pass_box.get()
+        win.destroy()
+
+    def switch_icons(button, entry):
+        if button.cget('image') == str(SHOW):
+            entry.config(show="")
+            button.config(image=HIDE)
+        elif button.cget('image') == str(HIDE):
+            entry.config(show=u'\u2022')
+            button.config(image=SHOW)
+
+    # widgets
+
+    check_var = tk.BooleanVar(value=True)
+
+    pass_lab = Label(win, font=def_font, text='Password: ')
+    confirmpass_lab = Label(win, font=def_font, text=' Conferma password: ')
+    pass_box = Entry(win, relief='sunken', show=u'\u2022')
+    confirmpass_box = Entry(win, relief='sunken', show=u'\u2022')
+    keep_copy = Checkbutton(win, font=def_font, text='Conserva una copia dell\'originale', variable=check_var)
+    showhide_pass_lab = Label(win, borderwidth=0, image=SHOW)
+    showhide_confirmpass_lab = Label(win, borderwidth=0, image=HIDE)
+    protect_but = Button(win, font=def_font, borderwidth=0, command=lambda: execute())
+
+    # configuration and bindings
+
+    showhide_pass_lab.bind("<Button-1>", lambda _: switch_icons(showhide_pass_lab, pass_box))
+    showhide_confirmpass_lab.bind("<Button-1>", lambda _: switch_icons(showhide_confirmpass_lab, confirmpass_box))
+
+    if to_encrypt:
+        protect_but.config(image=PADLOCK_CLOSED)
+        protect_but.bind("<Enter>", lambda _: protect_but.config(image=PADLOCK_CLOSED_HOVERED))
+        protect_but.bind("<Leave>", lambda _: protect_but.config(image=PADLOCK_CLOSED))
+
+    else:
+        protect_but.config(image=PADLOCK_OPENED)
+        protect_but.bind("<Enter>", lambda _: protect_but.config(image=PADLOCK_OPENED_HOVERED))
+        protect_but.bind("<Leave>", lambda _: protect_but.config(image=PADLOCK_OPENED))
+
+    if one_file:
+        keep_copy.config(text='Conserva una copia del file originale')
+    else:
+        keep_copy.config(text='Conserva una copia dei file originali')
+
+    # placing
+
+    pass_lab.place(x=12, y=10)
+    pass_box.place(x=15, y=30)
+    confirmpass_lab.place(x=8, y=60)
+    confirmpass_box.place(x=15, y=80)
+    keep_copy.place(x=9, y=110)
+    showhide_pass_lab.place(x=148, y=32)
+    showhide_confirmpass_lab.place(x=148, y=82)
+    protect_but.place(x=177, y=5)
+
+    protect_but.wait_window(win)
+
+    try:
+        return execute.password, check_var.get()
+    except AttributeError:
+        return None, check_var.get()
