@@ -59,7 +59,7 @@ def init_window():
             keep_copy = result[1]
 
             if not password:
-                return False
+                return
 
             for i in path:
                 has_been_encrypted.append(FileCrypter.encrypt(i, password, keep_copy))
@@ -74,7 +74,7 @@ def init_window():
             keep_copy = result[1]
 
             if not password:
-                return False
+                return
 
             for i in path:
                 has_been_decrypted.append(FileCrypter.decrypt(i, password, keep_copy))

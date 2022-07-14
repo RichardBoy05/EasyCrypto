@@ -4,85 +4,26 @@ import base64
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.exceptions import InvalidKey
-from os import getenv, rename, chmod, system, urandom
+from os import getenv, rename, chmod, urandom
 from stat import S_IREAD, S_IWRITE
 from os.path import exists, join
 from KeyCrypter import decrypt_key
-from Alerts import not_encrypted_alert, permission_error_alert, general_exception_alert, not_an_archive_alert, invalid_password
-from JSONUtils import store_data, parse_json
+from Alerts import already_encrypted_alert, not_encrypted_alert, permission_error_alert, general_exception_alert, \
+    not_an_archive_alert, invalid_password
+from JSONUtils import store_data, parse_json, remove_json_key
 
 PATH = getenv('APPDATA') + "\\EasyCrypto"
 STORAGE = PATH + '\\store.json'
 
 
-def get_crypted_data(path, keypath, action):  # actions: 1 -> encrypt; 2 -> check; 3 -> decrypt
-    # returns: positive number of the action if successfull; otherwise negative
-
-    key = str.encode(str(decrypt_key(keypath)))
-
-    crypter = Fernet(key)
-
+def encrypter_with_password(path, password, keep_copy):
     with open(path, 'rb') as file:
         original_file = file.read()
 
-    if action == 1:
-
-        try:
-            encrypted_file = crypter.encrypt(original_file)
-        except Exception as e:
-            general_exception_alert(e)
-            return -1
-
-        try:
-            with open(path, 'wb') as file_to_encrypt:
-                file_to_encrypt.write(encrypted_file)
-        except PermissionError as e:
-            permission_error_alert()
-            return -1
-        except Exception as e:
-            general_exception_alert(e)
-            return -1
-
-        return 1
-
-    else:
-        try:
-            decrypted_file = crypter.decrypt(original_file)
-        except InvalidToken:
-
-            if action == 2:
-                return -2
-            else:
-                not_encrypted_alert(path[path.rfind('/') + 1::])
-                return -3
-
-        except Exception as e:
-
-            general_exception_alert(e)
-            return -2 if action == 2 else -3
-
-        if action == 3:
-
-            try:
-                with open(path, 'wb') as file_to_decrypt:
-                    file_to_decrypt.write(decrypted_file)
-            except PermissionError as e:
-                permission_error_alert(e)
-                return -3
-            except Exception as e:
-                general_exception_alert(e)
-                return -3
-
-            return 3
-
-
-def is_already_encrypted(path):
-    outcome = get_crypted_data(path, None, 2)
-
-    return False if outcome == -2 else True
-
-
-def encrypter_with_password(path, password, keep_copy):
+    is_already_encrypted = parse_json(original_file.decode('ISO-8859-1'), STORAGE, True)
+    if is_already_encrypted:
+        already_encrypted_alert(path[path.rfind('/') + 1::])
+        return False
 
     salt = urandom(16)
 
@@ -95,16 +36,25 @@ def encrypter_with_password(path, password, keep_copy):
 
     key = base64.urlsafe_b64encode(kdf.derive(password))
 
-    with open(path, 'rb') as file:
-        original_file = file.read()
-
     encrypter = Fernet(key)
-    encrypted_content = encrypter.encrypt(original_file)
+
+    try:
+        encrypted_content = encrypter.encrypt(original_file)
+    except Exception as e:
+        general_exception_alert(e)
+        return False
 
     store_data(STORAGE, encrypted_content, salt, key)
 
-    with open(path, 'wb') as file:
-        file.write(encrypted_content)
+    try:
+        with open(path, 'wb') as file:
+            file.write(encrypted_content)
+    except PermissionError as e:
+        permission_error_alert(e)
+        return False
+    except Exception as e:
+        general_exception_alert(e)
+        return False
 
     filedefname = renaming_file(path, '.ezcrypto', True)
     chmod(join(path, filedefname), S_IREAD)
@@ -113,18 +63,23 @@ def encrypter_with_password(path, password, keep_copy):
         with open(path, "wb") as file:
             file.write(original_file)
 
+    return True
+
 
 def decrypter_with_password(path, password, keep_copy):
-
     chmod(path, S_IWRITE)
 
     with open(path, 'rb') as file:
-        file_content = file.read().decode('utf-8')
+        file_content = file.read().decode('ISO-8859-1')
 
-    pair = parse_json(file_content, STORAGE)
+    pair = parse_json(file_content, STORAGE, False)
 
-    salt = pair[0].encode('latin1')
-    key = decrypt_key(pair[1].encode('utf-8'))
+    if pair is None:
+        not_encrypted_alert(path[path.rfind('/') + 1::])
+        return False
+
+    salt = pair[0][0].encode('latin1')
+    key = decrypt_key(pair[0][1].encode('utf-8'))
 
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
@@ -145,10 +100,25 @@ def decrypter_with_password(path, password, keep_copy):
         original_file = file.read()
 
     decrypter = Fernet(key)
-    decrypted_content = decrypter.decrypt(original_file)
 
-    with open(path, 'wb') as file:
-        file.write(decrypted_content)
+    try:
+        decrypted_content = decrypter.decrypt(original_file)
+    except InvalidToken:
+        not_encrypted_alert(path[path.rfind('/') + 1::])
+        return False
+    except Exception as e:
+        general_exception_alert(e)
+        return False
+
+    try:
+        with open(path, 'wb') as file:
+            file.write(decrypted_content)
+    except PermissionError as e:
+        permission_error_alert(e)
+        return False
+    except Exception as e:
+        general_exception_alert(e)
+        return False
 
     filedefname = renaming_file(path, '.ezcrypto', False)
     chmod(join(path, filedefname), S_IWRITE)
@@ -157,6 +127,10 @@ def decrypter_with_password(path, password, keep_copy):
         with open(path, "wb") as file:
             file.write(original_file)
             chmod(path, S_IREAD)
+    else:
+        remove_json_key(STORAGE, pair[1], file_content)
+
+    return True
 
 
 def renaming_file(path, extension, to_encrypt):  # if to_encrypt is false, then it is a file to decrypt

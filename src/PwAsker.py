@@ -62,13 +62,13 @@ def ask_password(main_win, to_encrypt, one_file):
 
     # widgets
 
-    check_var = tk.BooleanVar(value=True)
+    check_var = tk.BooleanVar()
 
     pass_lab = Label(win, font=def_font, text='Password: ')
     confirmpass_lab = Label(win, font=def_font, text=' Conferma password: ')
     pass_box = Entry(win, relief='sunken', show=u'\u2022')
     confirmpass_box = Entry(win, relief='sunken', show=u'\u2022')
-    keep_copy = Checkbutton(win, font=def_font, text='Conserva una copia dell\'originale', variable=check_var)
+    keep_copy = Checkbutton(win, font=def_font, variable=check_var)
     showhide_pass_lab = Label(win, borderwidth=0, image=SHOW)
     showhide_confirmpass_lab = Label(win, borderwidth=0, image=HIDE)
     protect_but = Button(win, font=def_font, borderwidth=0, command=lambda: execute())
@@ -89,9 +89,19 @@ def ask_password(main_win, to_encrypt, one_file):
         protect_but.bind("<Leave>", lambda _: protect_but.config(image=PADLOCK_OPENED))
 
     if one_file:
-        keep_copy.config(text='Conserva una copia del file originale')
+        if to_encrypt:
+            keep_copy.config(text='Conserva una copia del file originale')
+            check_var.set(True)
+        else:
+            keep_copy.config(text='Conserva una copia del file criptato')
+            check_var.set(False)
     else:
-        keep_copy.config(text='Conserva una copia dei file originali')
+        if to_encrypt:
+            keep_copy.config(text='Conserva una copia dei file originali')
+            check_var.set(True)
+        else:
+            keep_copy.config(text='Conserva una copia dei file criptati')
+            check_var.set(False)
 
     # placing
 

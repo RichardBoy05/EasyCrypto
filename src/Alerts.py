@@ -16,8 +16,7 @@ def already_encrypted_alert(name):
 
 
 def not_encrypted_alert(name):
-    ctypes.windll.user32.MessageBoxW(0, "Il file '" + name + "' non è cryptato, oppure"
-                                                             " la chiave che stai utilizando non è corretta!", "Error!",
+    ctypes.windll.user32.MessageBoxW(0, "Il file '" + name + "' non è cryptato!", "Error!",
                                      16)
 
 

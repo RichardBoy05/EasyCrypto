@@ -17,8 +17,14 @@ def store_data(storage, encrypted_content, salt, key):
     lock_file(storage)
 
 
-def parse_json(content, storage):
+def parse_json(content, storage, check):
+
     unlock_file(storage)
+
+    with open(storage, 'r') as file:
+        if file.read() == "":
+            lock_file(storage)
+            return None
 
     with open(storage, 'r') as file:
         db = json.load(file)
@@ -29,14 +35,16 @@ def parse_json(content, storage):
 
     try:
         output = dic[content]
-        dic = remove_json_key(storage, dic, content)
-        return output
+
+        if check:
+            lock_file(storage)
+            return True
+
+        return output, dic
 
     except KeyError:
 
         lock_file(storage)
-
-        print("La chiave non esiste!")
         return None
 
 

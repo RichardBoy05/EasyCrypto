@@ -1,7 +1,7 @@
 from os import getenv, remove, listdir
 from os.path import isfile, join
-from CrypterUtils import get_crypted_data, is_already_encrypted, renaming_file, check_archive_extension, encrypter_with_password, decrypter_with_password
-from Alerts import already_encrypted_alert, invalid_archive_alert
+from CrypterUtils import renaming_file, check_archive_extension, encrypter_with_password, decrypter_with_password
+from Alerts import invalid_archive_alert
 from ZipPassword import password as zip_password
 from tkinter.filedialog import asksaveasfilename, askdirectory
 import pyzipper
@@ -14,25 +14,12 @@ CRYPTO_ARCHIVE_EXT = '.ezcryptozip'
 
 def encrypt(path, password, keep_copy):
 
-    # if is_already_encrypted(path):
-    #     already_encrypted_alert(path[path.rfind('/') + 1::])
-    #     return False
-
-    encrypter_with_password(path, password.encode('utf-8'), keep_copy)
-
-    # outcome = get_crypted_data(path, None, 1)
-    #
-    # if outcome == 1:
-    #     renaming_file(path, CRYPTO_EXT, True)
-    #
-    #     return True
-    #
-    # return False
+    return encrypter_with_password(path, password.encode('utf-8'), keep_copy)
 
 
 def decrypt(path, password, keep_copy):
 
-    decrypter_with_password(path, password.encode('utf-8'), keep_copy)
+    return decrypter_with_password(path, password.encode('utf-8'), keep_copy)
 
     # outcome = get_crypted_data(path, None, 3)
     #

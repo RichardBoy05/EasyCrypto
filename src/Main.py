@@ -3,6 +3,3 @@ from Setup import setup
 
 setup()
 init_window()
-
-
-
