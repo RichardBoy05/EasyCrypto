@@ -4,19 +4,20 @@ import base64
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.exceptions import InvalidKey
-from os import getenv, rename, chmod, urandom
+from os import rename, chmod, urandom, getenv
 from stat import S_IREAD, S_IWRITE
 from os.path import exists, join
 from KeyCrypter import decrypt_key
 from Alerts import already_encrypted_alert, not_encrypted_alert, permission_error_alert, general_exception_alert, \
-    not_an_archive_alert, invalid_password
+    invalid_password
 from JSONUtils import store_data, parse_json, remove_json_key
 
-PATH = getenv('APPDATA') + "\\EasyCrypto"
+
+PATH = join(getenv('APPDATA'), 'EasyCrypto')
 STORAGE = PATH + '\\store.json'
 
 
-def encrypter_with_password(path, password, keep_copy):
+def encrypter(path, password, keep_copy):
     with open(path, 'rb') as file:
         original_file = file.read()
 
@@ -66,7 +67,7 @@ def encrypter_with_password(path, password, keep_copy):
     return True
 
 
-def decrypter_with_password(path, password, keep_copy):
+def decrypter(path, password, keep_copy):
     chmod(path, S_IWRITE)
 
     with open(path, 'rb') as file:
@@ -183,15 +184,3 @@ def avoid_same_dir_name(name):
         index += 1
 
     return name
-
-
-def check_archive_extension(point_index, extension, path):
-    if point_index == -1:
-        not_an_archive_alert(extension)
-        return False
-
-    if path[point_index::] != extension:
-        not_an_archive_alert(extension)
-        return False
-
-    return True

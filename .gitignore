@@ -3,4 +3,4 @@
 *.xml
 src/KeyCrypter.py
 *.pyc
-src/ZipPassword.py
+src/SafeData.py

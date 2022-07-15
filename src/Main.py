@@ -1,4 +1,4 @@
-from Gui import init_window
+from MainGui import init_window
 from Setup import setup
 
 setup()

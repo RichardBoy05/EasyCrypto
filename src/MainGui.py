@@ -1,10 +1,11 @@
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import Label
-import FileCrypter
-from Alerts import encrypted_successfully_alert, decrypted_successfully_alert, archive_extracted_alert, archive_created_alert
+from Alerts import encrypted_successfully_alert, decrypted_successfully_alert
 from Links import search_info, search_github
-from PwAsker import ask_password
+from PasswordGui import ask_password
+from LocalCrypter import encrypter, decrypter
+from RSAEncryption import share, translate
 
 
 def init_window():
@@ -42,12 +43,8 @@ def init_window():
 
     def execute(is_encrypted, is_internal):
 
-        if is_encrypted and not is_internal:
-            files = [('Archivio EasyCrypto', '*' + FileCrypter.CRYPTO_ARCHIVE_EXT)]
-            path = filedialog.askopenfilename(title='Seleziona un archivio da decriptare...', filetypes=files)
-        else:
-            files = [('Tutti i file', '*.*')]
-            path = filedialog.askopenfilenames(title='Seleziona uno o più file...', filetypes=files)
+        files = [('Tutti i file', '*.*')]
+        path = filedialog.askopenfilenames(title='Seleziona uno o più file...', filetypes=files)
 
         if not path:
             return
@@ -62,7 +59,7 @@ def init_window():
                 return
 
             for i in path:
-                has_been_encrypted.append(FileCrypter.encrypt(i, password, keep_copy))
+                has_been_encrypted.append(encrypter(i, password.encode('utf-8'), keep_copy))
             if all(has_been_encrypted):
                 encrypted_successfully_alert(len(path))
             return
@@ -77,25 +74,19 @@ def init_window():
                 return
 
             for i in path:
-                has_been_decrypted.append(FileCrypter.decrypt(i, password, keep_copy))
+                has_been_decrypted.append(decrypter(i, password.encode('utf-8'), keep_copy))
             if all(has_been_decrypted):
                 decrypted_successfully_alert(len(path))
             return
 
-        if is_encrypted and not is_internal:
-            has_been_decrypted = FileCrypter.decrypt_external_file(path)
-            if has_been_decrypted:
-                archive_extracted_alert(path[path.rfind('/') + 1::])
-            return
-
         if not is_encrypted and not is_internal:
-            has_been_shared = FileCrypter.share(path)
-            if has_been_shared[0]:
-                archive_created_alert(has_been_shared[1][has_been_shared[1].rfind('/') + 1::])
-            return
+            has_been_shared = []
+            for i in path:
+                has_been_shared.append(share(i))
 
-    def show_settings():
-        pass
+
+        if is_encrypted and not is_internal:
+            return
 
     # widgets
 
