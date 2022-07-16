@@ -2,7 +2,8 @@ import pyrebase
 from SafeData import firebaseConfig
 from Alerts import general_exception_alert
 from os.path import join
-from os import system, remove, getenv
+from os import getenv
+from UsernameGui import ask_username
 
 PATH = join(getenv('APPDATA'), 'EasyCrypto')
 
@@ -30,40 +31,12 @@ def delete(storage, location):
     storage.delete(location, None)
 
 
-def user(to_set):  # if True -> set username else get username
+def user(main_win, to_set):  # if to_set is True -> set username else get username
 
-    if to_set:
-        text = "Inserisci il tuo nome utente: (sostituisci con interfaccia ndr)"
-    else:
-        text = "Seleziona un utente: (sostituisci con interfaccia ndr)"
+    username = ask_username(main_win, to_set)
 
-    username = input(text)
-
-    storage = connect()
-    if storage is None:
+    if username is None:
         return None
-
-    download(storage, 'users_list.txt', PATH, PATH + '\\users_list.txt')
-
-    if to_set:
-        while not is_username_unique(PATH + '\\users_list.txt', username):
-            username = input(text)
-    else:
-        while is_username_unique(PATH + '\\users_list.txt', username):
-            username = input(text)
-
-    if to_set:
-        with open(PATH + '\\users_list.txt', 'a+') as file:
-
-            file.seek(0)
-            if len(file.read(1)) > 0:
-                file.write('\n')
-            file.seek(0, 2)
-            file.write(username)
-
-        upload(storage, 'users_list.txt', PATH + '\\users_list.txt')
-
-    remove(PATH + '\\users_list.txt')
 
     return username
 

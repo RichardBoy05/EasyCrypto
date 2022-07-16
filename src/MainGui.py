@@ -5,6 +5,7 @@ from Alerts import encrypted_successfully_alert, decrypted_successfully_alert
 from Links import search_info, search_github
 from PasswordGui import ask_password
 from LocalCrypter import encrypter, decrypter
+from FirebaseUtils import user
 from RSAEncryption import share, translate
 
 
@@ -81,12 +82,18 @@ def init_window():
 
         if not is_encrypted and not is_internal:
             has_been_shared = []
-            for i in path:
-                has_been_shared.append(share(i))
+            username = user(win, False)
 
+            if username is None:
+                return
+
+            for i in path:
+                has_been_shared.append(share(i, username))
 
         if is_encrypted and not is_internal:
-            return
+            has_been_traslated = []
+            for i in path:
+                has_been_traslated.append(translate(i))
 
     # widgets
 
@@ -108,8 +115,10 @@ def init_window():
     decrypt_but.bind("<Leave>", lambda _: decrypt_but.config(image=DECRYPT_IMAGE))
     share_but.bind("<Enter>", lambda _: share_but.config(image=SHARE_IMAGE_HOVERED))
     share_but.bind("<Leave>", lambda _: share_but.config(image=SHARE_IMAGE))
-    decrypt_external_file_but.bind("<Enter>", lambda _: decrypt_external_file_but.config(image=DECRYPT_EXTERNAL_FILE_IMAGE_HOVERED))
-    decrypt_external_file_but.bind("<Leave>", lambda _: decrypt_external_file_but.config(image=DECRYPT_EXTERNAL_FILE_IMAGE))
+    decrypt_external_file_but.bind("<Enter>", lambda _: decrypt_external_file_but.config(
+        image=DECRYPT_EXTERNAL_FILE_IMAGE_HOVERED))
+    decrypt_external_file_but.bind("<Leave>",
+                                   lambda _: decrypt_external_file_but.config(image=DECRYPT_EXTERNAL_FILE_IMAGE))
     info_lab.bind("<Enter>", lambda _: info_lab.config(image=INFO_IMAGE_HOVERED))
     info_lab.bind("<Leave>", lambda _: info_lab.config(image=INFO_IMAGE))
     info_lab.bind("<Button-1>", lambda _: search_info())

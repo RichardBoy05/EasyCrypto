@@ -1,4 +1,4 @@
-from os import getenv, mkdir, path, system
+from os import getenv, mkdir, path, system, remove
 from os.path import join
 from SafeData import password
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -6,6 +6,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from JSONUtils import lock_file
 from FirebaseUtils import connect, upload, user
+from sys import exit
 
 PATH = join(getenv('APPDATA'), 'EasyCrypto')
 
@@ -16,11 +17,14 @@ def setup():
         return
 
     local_setup()
-    username = user(True)
+    username = user(None, True)
 
-    if username is not None:
-        generate_keys()
-        upload_public_key(username)
+    if username is None:
+        remove(PATH)
+        exit()
+
+    generate_keys()
+    upload_public_key(username)
 
 
 def local_setup():

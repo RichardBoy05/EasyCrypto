@@ -44,3 +44,15 @@ def different_passwords_alert():
 
 def invalid_password():
     ctypes.windll.user32.MessageBoxW(0, "La password non è corretta!", "Error!", 16)
+
+
+def username_already_exists_alert(username):
+    ctypes.windll.user32.MessageBoxW(0, "L'utente '" + username + "' esiste già!", "Error!", 16)
+
+
+def username_does_not_exixst_alert(username):
+    ctypes.windll.user32.MessageBoxW(0, "L'utente '" + username + "' non esiste!", "Error!", 16)
+
+
+def not_shared_alert():
+    ctypes.windll.user32.MessageBoxW(0, "Nessuno ha condiviso questo file con te!", "Error!", 16)
