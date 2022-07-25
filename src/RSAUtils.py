@@ -11,7 +11,6 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.fernet import Fernet
 from cryptography.fernet import InvalidToken
 from Alerts import general_exception_alert, permission_error_alert, not_encrypted_alert, not_shared_alert
-from base64 import b64encode, b64decode
 from SafeData import password, obfuscate_name, deobfuscate_name
 
 

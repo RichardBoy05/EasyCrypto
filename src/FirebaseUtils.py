@@ -1,11 +1,10 @@
 import pyrebase
+import os
 from SafeData import firebaseConfig
 from Alerts import general_exception_alert
-from os.path import join
-from os import getenv
 from UsernameGui import ask_username
 
-PATH = join(getenv('APPDATA'), 'EasyCrypto')
+PATH = os.path.join(os.getenv('APPDATA'), 'EasyCrypto')
 
 
 def connect():
@@ -20,15 +19,24 @@ def connect():
 
 
 def download(storage, location, localpath, localname):
-    storage.child(location).download(localpath, join(localpath, localname))
+    try:
+        storage.child(location).download(localpath, os.path.join(localpath, localname))
+    except Exception as e:
+        general_exception_alert(e)
 
 
 def upload(storage, location, local_location):
-    storage.child(location).put(local_location)
+    try:
+        storage.child(location).put(local_location)
+    except Exception as e:
+        general_exception_alert(e)
 
 
 def delete(storage, location):
-    storage.delete(location, None)
+    try:
+        storage.delete(location, None)
+    except Exception as e:
+        general_exception_alert(e)
 
 
 def user(main_win, to_set):  # if to_set is True -> set username else get username

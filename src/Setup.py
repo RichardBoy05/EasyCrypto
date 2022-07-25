@@ -1,38 +1,36 @@
-from os import getenv, mkdir, path, system, remove
-from os.path import join
+import os
+import sys
+import FirebaseUtils as Fb
 from SafeData import password
+from StoringUtils import lock_file
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
-from JSONUtils import lock_file
-from FirebaseUtils import connect, upload, user
-from sys import exit
 
-PATH = join(getenv('APPDATA'), 'EasyCrypto')
+PATH = os.path.join(os.getenv('APPDATA'), 'EasyCrypto')
 
 
 def setup():
-
-    if path.exists(PATH):
+    if os.path.exists(PATH):
         return
 
     local_setup()
-    username = user(None, True)
+    username = Fb.user(None, True)
 
     if username is None:
-        remove(PATH)
-        exit()
+        handle_errors()
 
     generate_keys()
     upload_public_key(username)
 
 
 def local_setup():
-    mkdir(PATH)
-    system("attrib +h " + PATH)
+    os.mkdir(PATH)
+    os.system("attrib +h " + PATH)
 
-    open(PATH + '\\store.json', 'w')
-    lock_file(PATH + '\\store.json')
+    local_storage = PATH + '\\store.json'
+    open(local_storage, 'w')
+    lock_file(local_storage)
 
 
 def generate_keys():
@@ -51,7 +49,7 @@ def generate_keys():
     )
 
     with open(PATH + '\\private_key.pem', 'wb') as f:
-        f.write(priv_pem)  # ricordati di proteggerla con un hash o qualche ambaradam strano
+        f.write(priv_pem)
     lock_file(PATH + '\\private_key.pem')
 
     pub_pem = public_key.public_bytes(
@@ -64,9 +62,14 @@ def generate_keys():
 
 
 def upload_public_key(username):
+    storage = Fb.connect()
 
-    storage = connect()
     public_key_file = PATH + '\\public_key.pem'
 
-    upload(storage, 'Users/' + username + '.pem', public_key_file)
+    Fb.upload(storage, 'Users/' + username + '.pem', public_key_file)
     lock_file(public_key_file)
+
+
+def handle_errors():
+    os.remove(PATH)
+    sys.exit()

@@ -9,7 +9,7 @@ from FirebaseUtils import user
 from RSAEncryption import share, translate
 
 
-def init_window():
+def init():
     win = tk.Tk()
 
     WIDTH = 450
@@ -97,7 +97,7 @@ def init_window():
 
     # widgets
 
-    background_label = Label(win, image=BACKGROUND_IMAGE)
+    background_lab = Label(win, image=BACKGROUND_IMAGE)
     encrypt_but = tk.Button(win, image=CRYPT_IMAGE, borderwidth=0, command=lambda: execute(False, True))
     decrypt_but = tk.Button(win, image=DECRYPT_IMAGE, borderwidth=0, command=lambda: execute(True, True))
     share_but = tk.Button(win, image=SHARE_IMAGE, borderwidth=0, command=lambda: execute(False, False))
@@ -131,7 +131,7 @@ def init_window():
 
     # placing
 
-    background_label.place(x=-2, y=-2)
+    background_lab.place(x=-2, y=-2)
     encrypt_but.place(x=34, y=230)
     decrypt_but.place(x=244, y=230)
     decrypt_external_file_but.place(x=244, y=330)

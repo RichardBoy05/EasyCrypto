@@ -10,7 +10,7 @@ from os.path import exists, join
 from KeyCrypter import decrypt_key
 from Alerts import already_encrypted_alert, not_encrypted_alert, permission_error_alert, general_exception_alert, \
     invalid_password
-from JSONUtils import store_data, parse_json, remove_json_key
+from StoringUtils import store_data, parse_json, remove_json_key
 
 
 PATH = join(getenv('APPDATA'), 'EasyCrypto')
