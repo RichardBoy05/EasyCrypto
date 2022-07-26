@@ -1,6 +1,5 @@
 import tkinter as tk
-from tkinter import Label, Button, Entry, Checkbutton
-from Alerts import empty_box_alert, different_passwords_alert
+from alerts import empty_box_alert, different_passwords_alert
 
 
 def ask_password(main_win, to_encrypt, one_file):
@@ -64,14 +63,14 @@ def ask_password(main_win, to_encrypt, one_file):
 
     check_var = tk.BooleanVar()
 
-    pass_lab = Label(win, font=def_font, text='Password: ')
-    confirmpass_lab = Label(win, font=def_font, text=' Conferma password: ')
-    pass_box = Entry(win, relief='sunken', show=u'\u2022')
-    confirmpass_box = Entry(win, relief='sunken', show=u'\u2022')
-    keep_copy = Checkbutton(win, font=def_font, variable=check_var)
-    showhide_pass_lab = Label(win, borderwidth=0, image=SHOW)
-    showhide_confirmpass_lab = Label(win, borderwidth=0, image=HIDE)
-    protect_but = Button(win, font=def_font, borderwidth=0, command=lambda: execute())
+    pass_lab = tk.Label(win, font=def_font, text='Password: ')
+    confirmpass_lab = tk.Label(win, font=def_font, text=' Conferma password: ')
+    pass_box = tk.Entry(win, relief='sunken', show=u'\u2022')
+    confirmpass_box = tk.Entry(win, relief='sunken', show=u'\u2022')
+    keep_copy = tk.Checkbutton(win, font=def_font, variable=check_var)
+    showhide_pass_lab = tk.Label(win, borderwidth=0, image=SHOW)
+    showhide_confirmpass_lab = tk.Label(win, borderwidth=0, image=SHOW)
+    protect_but = tk.Button(win, font=def_font, borderwidth=0, command=lambda: execute())
 
     # configuration and bindings
 

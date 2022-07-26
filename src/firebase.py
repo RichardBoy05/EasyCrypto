@@ -1,10 +1,8 @@
 import pyrebase
 import os
-from SafeData import firebaseConfig
-from Alerts import general_exception_alert
-from UsernameGui import ask_username
-
-PATH = os.path.join(os.getenv('APPDATA'), 'EasyCrypto')
+from safedata import firebaseConfig
+from alerts import general_exception_alert
+from usernamegui import ask_username
 
 
 def connect():

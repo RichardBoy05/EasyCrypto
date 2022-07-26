@@ -1,12 +1,12 @@
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import Label
-from Alerts import encrypted_successfully_alert, decrypted_successfully_alert
-from Links import search_info, search_github
-from PasswordGui import ask_password
-from LocalCrypter import encrypter, decrypter
-from FirebaseUtils import user
-from RSAEncryption import share, translate
+from alerts import encrypted_successfully_alert, decrypted_successfully_alert
+from web import search_info, search_github
+from passwordgui import ask_password
+from local_crypter import encrypt, decrypt
+from firebase import user
+from rsa_encryption import share, translate
 
 
 def init():
@@ -60,7 +60,7 @@ def init():
                 return
 
             for i in path:
-                has_been_encrypted.append(encrypter(i, password.encode('utf-8'), keep_copy))
+                has_been_encrypted.append(encrypt(i, password.encode('utf-8'), keep_copy))
             if all(has_been_encrypted):
                 encrypted_successfully_alert(len(path))
             return
@@ -75,7 +75,7 @@ def init():
                 return
 
             for i in path:
-                has_been_decrypted.append(decrypter(i, password.encode('utf-8'), keep_copy))
+                has_been_decrypted.append(decrypt(i, password.encode('utf-8'), keep_copy))
             if all(has_been_decrypted):
                 decrypted_successfully_alert(len(path))
             return
@@ -94,6 +94,9 @@ def init():
             has_been_traslated = []
             for i in path:
                 has_been_traslated.append(translate(i))
+
+    def show_settings():
+        pass
 
     # widgets
 

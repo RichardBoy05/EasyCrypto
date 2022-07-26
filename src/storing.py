@@ -1,11 +1,12 @@
 import json
-from os import system, chmod
+import os
+import key_crypter as kc
 from stat import S_IREAD, S_IWRITE
-from KeyCrypter import encrypt_key
 
 
 def store_data(storage, encrypted_content, salt, key):
-    record = {encrypted_content.decode('utf-8'): [salt.decode('latin1'), encrypt_key(key).decode('utf-8')]}
+
+    record = {encrypted_content.decode('utf-8'): [salt.decode('ISO-8859-1'), kc.encrypt_key(key).decode('utf-8')]}
 
     unlock_file(storage)
     unfix_json_format(storage)
@@ -72,7 +73,7 @@ def fix_json_format(path):
     with open(path, 'r') as file:
         content = file.read()
 
-    content = content.replace('}', '},')
+    content = content.replace('}\n', '},\n')
     content = content[:-2:]
     content = '[' + content + ']'
 
@@ -87,7 +88,7 @@ def unfix_json_format(path):
     if len(content) == 0 or content[0] != '[':
         return
 
-    content = content.replace('},', '}')
+    content = content.replace('},\n', '}\n')
     content = content[1:-1:]
     content += '\n'
 
@@ -96,10 +97,10 @@ def unfix_json_format(path):
 
 
 def lock_file(file):
-    system("attrib +h " + file)
-    chmod(file, S_IREAD)
+    os.system("attrib +h " + file)
+    os.chmod(file, S_IREAD)
 
 
 def unlock_file(file):
-    system("attrib -h " + file)
-    chmod(file, S_IWRITE)
+    os.system("attrib -h " + file)
+    os.chmod(file, S_IWRITE)

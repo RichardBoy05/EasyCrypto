@@ -1,26 +1,23 @@
 import os
-
-from Setup import PATH
-from FirebaseUtils import connect, upload, download
-from os.path import join, exists
-from os import remove, chmod, rename
+import firebase as fb
+from setup import CRYPT_PATH
 from stat import S_IWRITE
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.fernet import Fernet
 from cryptography.fernet import InvalidToken
-from Alerts import general_exception_alert, permission_error_alert, not_encrypted_alert, not_shared_alert
-from SafeData import password, obfuscate_name, deobfuscate_name
+from alerts import general_exception_alert, permission_error_alert, not_encrypted_alert, not_shared_alert
+from safedata import password, obfuscate_name, deobfuscate_name
 
 
 def get_public_key(username):
-    storage = connect()
+    storage = fb.connect()
     if storage is None:
         return None
 
-    key_path = join(PATH, username + '_publickey.pem')
-    download(storage, 'Users/' + username + '.pem', PATH, key_path)
+    key_path = os.path.join(CRYPT_PATH, username + '_publickey.pem')
+    fb.download(storage, 'Users/' + username + '.pem', CRYPT_PATH, key_path)
 
     with open(key_path, "rb") as key_file:
         public_key = serialization.load_pem_public_key(
@@ -28,7 +25,7 @@ def get_public_key(username):
             backend=default_backend()
         )
 
-    remove(key_path)
+    os.remove(key_path)
 
     return public_key
 
@@ -72,18 +69,18 @@ def encrypt_key(key, public_key):
 
 
 def publish_encrypted_key(key, new_filename):
-    filepath = join(PATH, 'tempkey.key')
+    filepath = os.path.join(CRYPT_PATH, 'tempkey.key')
 
     with open(filepath, 'wb') as file:
         file.write(key)
 
-    storage = connect()
+    storage = fb.connect()
 
     if storage is None:
         return None
 
-    upload(storage, 'Tokens/' + new_filename + '.key', filepath)
-    remove(filepath)
+    fb.upload(storage, 'Tokens/' + new_filename + '.key', filepath)
+    os.remove(filepath)
 
 
 def change_name(username, filename, extension):
@@ -93,14 +90,14 @@ def change_name(username, filename, extension):
 
 
 def get_public_token(location, name):
-    storage = connect()
+    storage = fb.connect()
     if storage is None:
         return None
 
-    download(storage, location, PATH, 'temp -' + name)
-    encrypted_key_file = join(PATH, 'temp -' + name)
+    fb.download(storage, location, CRYPT_PATH, 'temp -' + name)
+    encrypted_key_file = os.path.join(CRYPT_PATH, 'temp -' + name)
 
-    if not exists(encrypted_key_file):
+    if not os.path.exists(encrypted_key_file):
         not_shared_alert()
         return None
 
@@ -113,7 +110,7 @@ def get_public_token(location, name):
 
 
 def decrypt_key(encrypted_key):
-    with open(PATH + "\\private_key.pem", "rb") as key_file:
+    with open(CRYPT_PATH + "\\private_key.pem", "rb") as key_file:
         private_key = serialization.load_pem_private_key(
             key_file.read(),
             password=password,
@@ -133,7 +130,7 @@ def decrypt_key(encrypted_key):
 
 
 def decrypt_file(path, key):
-    chmod(path, S_IWRITE)
+    os.chmod(path, S_IWRITE)
 
     with open(path, 'rb') as file:
         encrypted_file = file.read()
@@ -166,11 +163,11 @@ def rename_decrypted_file(path, name):
     name_encoded = name.split('-', 1)[1]
     new_name = deobfuscate_name(name_encoded).replace('#', '-')
 
-    rename(path, path[:path.rfind('/'):] + '\\' + new_name)
+    os.rename(path, path[:path.rfind('/'):] + '\\' + new_name)
 
 
 def clear_storage(location):
-    storage = connect()
+    storage = fb.connect()
 
     if storage is None:
         return None
