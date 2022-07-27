@@ -1,14 +1,14 @@
 import os
 import firebase as fb
-from setup import CRYPT_PATH
+import alerts
 from stat import S_IWRITE
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding
+from setup import CRYPT_PATH
 from cryptography.fernet import Fernet
 from cryptography.fernet import InvalidToken
-from alerts import general_exception_alert, permission_error_alert, not_encrypted_alert, not_shared_alert
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import padding
 from safedata import password, obfuscate_name, deobfuscate_name
+from cryptography.hazmat.primitives import hashes, serialization
 
 
 def get_public_key(username):
@@ -16,8 +16,9 @@ def get_public_key(username):
     if storage is None:
         return None
 
-    key_path = os.path.join(CRYPT_PATH, username + '_publickey.pem')
-    fb.download(storage, 'Users/' + username + '.pem', CRYPT_PATH, key_path)
+    key_path = os.path.join(CRYPT_PATH, f'{username}_publickey.pem')
+    if not fb.download(storage, f'Users/{username}.pem', CRYPT_PATH, f'{username}_publickey.pem'):
+        return None
 
     with open(key_path, "rb") as key_file:
         public_key = serialization.load_pem_public_key(
@@ -31,6 +32,7 @@ def get_public_key(username):
 
 
 def encrypt_file(path):
+
     key = Fernet.generate_key()
     encrypter = Fernet(key)
 
@@ -40,20 +42,20 @@ def encrypt_file(path):
     try:
         encrypted_content = encrypter.encrypt(original_content)
     except Exception as e:
-        general_exception_alert(e)
+        alerts.general_exception_alert(e)
         return None
 
     try:
         with open(path, 'wb') as file:
             file.write(encrypted_content)
     except PermissionError as e:
-        permission_error_alert(e)
+        alerts.permission_error_alert(e)
         return None
     except Exception as e:
-        general_exception_alert(e)
+        alerts.general_exception_alert(e)
         return None
 
-    return key
+    return original_content, key
 
 
 def encrypt_key(key, public_key):
@@ -79,14 +81,18 @@ def publish_encrypted_key(key, new_filename):
     if storage is None:
         return None
 
-    fb.upload(storage, 'Tokens/' + new_filename + '.key', filepath)
+    if not fb.upload(storage, 'Tokens/' + new_filename + '.key', filepath):
+        os.remove(filepath)
+        return None
+
     os.remove(filepath)
+    return True
 
 
 def change_name(username, filename, extension):
     new_username = obfuscate_name(username).replace('-', '#')
     new_filename = obfuscate_name(filename).replace('-', '#') + extension
-    return new_username + '-' + new_filename
+    return f'{new_username}-{new_filename}'
 
 
 def get_public_token(location, name):
@@ -94,11 +100,13 @@ def get_public_token(location, name):
     if storage is None:
         return None
 
-    fb.download(storage, location, CRYPT_PATH, 'temp -' + name)
+    if not fb.download(storage, location, CRYPT_PATH, 'temp -' + name):
+        return None
+
     encrypted_key_file = os.path.join(CRYPT_PATH, 'temp -' + name)
 
     if not os.path.exists(encrypted_key_file):
-        not_shared_alert()
+        alerts.not_shared_alert()
         return None
 
     with open(encrypted_key_file, 'rb') as file:
@@ -140,20 +148,20 @@ def decrypt_file(path, key):
     try:
         decrypted_content = decrypter.decrypt(encrypted_file)
     except InvalidToken:
-        not_encrypted_alert(path[path.rfind('/') + 1::])
+        alerts.not_encrypted_alert(path[path.rfind('/') + 1::])
         return None
     except Exception as e:
-        general_exception_alert(e)
+        alerts.general_exception_alert(e)
         return None
 
     try:
         with open(path, 'wb') as file:
             file.write(decrypted_content)
     except PermissionError as e:
-        permission_error_alert(e)
+        alerts.permission_error_alert(e)
         return None
     except Exception as e:
-        general_exception_alert(e)
+        alerts.general_exception_alert(e)
         return None
 
     return True
@@ -173,3 +181,6 @@ def clear_storage(location):
         return None
 
     storage.delete(location, None)
+
+def is_already_encrypted():
+    pass

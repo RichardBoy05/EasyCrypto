@@ -45,6 +45,9 @@ def set_username():
     filepath = PATH + '\\users_list.txt'
     storage = get_users_list(filepath)
 
+    if storage is None:
+        return None
+
     def readme_redirect():
         x_coord = win.winfo_pointerx() - win.winfo_rootx()
         y_coord = win.winfo_pointery() - win.winfo_rooty()
@@ -88,8 +91,11 @@ def set_username():
 
     go_but.wait_window(win)
 
-    if os.path.exists(filepath):
-        os.remove(filepath)
+    try:
+        if os.path.exists(filepath):
+            os.remove(filepath)
+    except PermissionError:
+        pass
 
     try:
         return execute.username
@@ -98,7 +104,6 @@ def set_username():
 
 
 def get_username(main_win):
-
     win = tk.Toplevel(main_win)
     win.grab_set()
 
@@ -126,11 +131,15 @@ def get_username(main_win):
     filepath = PATH + '\\users_list.txt'
     storage = get_users_list(filepath)
 
+    if storage is None:
+        win.destroy()
+        return None
+
     # widgets
 
     background_canv = tk.Canvas(win, width=425, height=200)
     background_canv.create_image(214, 102, image=BACKGROUND_IMAGE)
-    canva_id = background_canv.create_text(30, 175, text='Nickname troppo corto!', fill='red', anchor='w')
+    canva_id = background_canv.create_text(30, 158, text='Nickname troppo corto!', fill='red', anchor='w')
     user_entry = tk.Entry(win, width=19, font=def_font, relief='ridge', bd=2, textvariable=data)
     go_but = tk.Button(win, image=GO_IMAGE, borderwidth=0, bg='#160ca3',
                        command=lambda: execute(win, storage, user_entry.get(), False, background_canv, canva_id))
@@ -163,7 +172,9 @@ def get_users_list(filepath):
     storage = fb.connect()
     if storage is None:
         return None
-    fb.download(storage, 'users_list.txt', PATH, filepath)
+
+    if not fb.download(storage, 'users_list.txt', PATH, filepath):
+        return None
 
     return storage
 
@@ -185,7 +196,8 @@ def execute(win, storage, nickname, to_set, background_canva, canva_id):
             file.seek(0, 2)
             file.write(execute.username)
 
-        fb.upload(storage, 'users_list.txt', filepath)
+        if not fb.upload(storage, 'users_list.txt', filepath):
+            execute.username = None
 
     win.destroy()
 
@@ -219,7 +231,8 @@ def check_username(username, to_set, canva, canva_id):
 
         current_username = config.parse_with_key('Username')
         if username == current_username:
-            canva.itemconfig(canva_id, text='Questo utente sei tu! Non puoi condividere un file con te stesso!', fill='red')
+            canva.itemconfig(canva_id, text='Questo utente sei tu! Non puoi condividere un file con te stesso!',
+                             fill='red')
             return
 
     canva.itemconfig(canva_id, text='Nickname valido!', fill='green')

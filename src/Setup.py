@@ -1,7 +1,7 @@
 import os
-import shutil
 import sys
 import config
+import shutil
 import firebase as fb
 from safedata import password
 from storing import lock_file, unlock_file
@@ -16,14 +16,15 @@ CONFIG_FILE = os.path.join(PATH, 'config.ini')
 
 
 def setup():
-    if os.path.exists(PATH):
-        return
+
+    if os.path.exists(CONFIG_FILE):
+        return False
 
     local_setup()
     username = fb.user(None, True)
 
     if username is None:
-        handle_errors()
+        shutdown()
 
     configuration(username)
     generate_keys()
@@ -31,6 +32,10 @@ def setup():
 
 
 def local_setup():
+
+    if os.path.exists(PATH):
+        shutil.rmtree(PATH)
+
     os.mkdir(PATH)
     os.mkdir(CRYPT_PATH)
     os.system("attrib +h " + PATH)
@@ -85,9 +90,11 @@ def upload_public_key(username):
     lock_file(public_key_file)
 
 
-def handle_errors():
+def shutdown():
     if os.path.exists(PATH):
         unlock_file(os.path.join(CRYPT_PATH, 'store.json'))
         unlock_file(os.path.join(PATH, 'config.ini'))
-        shutil.rmtree(PATH)
+
+        shutil.rmtree(PATH, ignore_errors=True)
+
     sys.exit()

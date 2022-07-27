@@ -1,12 +1,11 @@
+import web
+import alerts
 import tkinter as tk
+import firebase as fb
+import local_crypter as lc
+import passwordgui as pwgui
+import rsa_encryption as rsa
 from tkinter import filedialog
-from tkinter import Label
-from alerts import encrypted_successfully_alert, decrypted_successfully_alert
-from web import search_info, search_github
-from passwordgui import ask_password
-from local_crypter import encrypt, decrypt
-from firebase import user
-from rsa_encryption import share, translate
 
 
 def init():
@@ -45,14 +44,15 @@ def init():
     def execute(is_encrypted, is_internal):
 
         files = [('Tutti i file', '*.*')]
-        path = filedialog.askopenfilenames(title='Seleziona uno o più file...', filetypes=files)
+        path = tk.filedialog.askopenfilenames(title='Seleziona uno o più file...', filetypes=files)
+        tk
 
         if not path:
             return
 
         if not is_encrypted and is_internal:
             has_been_encrypted = []
-            result = ask_password(win, True, True if len(path) == 1 else False)
+            result = pwgui.ask_password(win, True, True if len(path) == 1 else False)
             password = result[0]
             keep_copy = result[1]
 
@@ -60,14 +60,14 @@ def init():
                 return
 
             for i in path:
-                has_been_encrypted.append(encrypt(i, password.encode('utf-8'), keep_copy))
+                has_been_encrypted.append(lc.encrypt(i, password.encode('utf-8'), keep_copy))
             if all(has_been_encrypted):
-                encrypted_successfully_alert(len(path))
+                alerts.encrypted_successfully_alert(len(path))
             return
 
         if is_encrypted and is_internal:
             has_been_decrypted = []
-            result = ask_password(win, False, True if len(path) == 1 else False)
+            result = pwgui.ask_password(win, False, True if len(path) == 1 else False)
             password = result[0]
             keep_copy = result[1]
 
@@ -75,32 +75,40 @@ def init():
                 return
 
             for i in path:
-                has_been_decrypted.append(decrypt(i, password.encode('utf-8'), keep_copy))
+                has_been_decrypted.append(lc.decrypt(i, password.encode('utf-8'), keep_copy))
             if all(has_been_decrypted):
-                decrypted_successfully_alert(len(path))
+                alerts.decrypted_successfully_alert(len(path))
             return
 
         if not is_encrypted and not is_internal:
             has_been_shared = []
-            username = user(win, False)
+            username = fb.user(win, False)
 
             if username is None:
                 return
 
             for i in path:
-                has_been_shared.append(share(i, username))
+                has_been_shared.append(rsa.share(i, username))
+
+            if all(has_been_shared):
+                alerts.shared_successfully_alert(len(path))
+            return
 
         if is_encrypted and not is_internal:
-            has_been_traslated = []
+            has_been_translated = []
             for i in path:
-                has_been_traslated.append(translate(i))
+                has_been_translated.append(rsa.translate(i))
+
+            if all(has_been_translated):
+                alerts.translated_successfully_alert(len(path))
+            return
 
     def show_settings():
         pass
 
     # widgets
 
-    background_lab = Label(win, image=BACKGROUND_IMAGE)
+    background_lab = tk.Label(win, image=BACKGROUND_IMAGE)
     encrypt_but = tk.Button(win, image=CRYPT_IMAGE, borderwidth=0, command=lambda: execute(False, True))
     decrypt_but = tk.Button(win, image=DECRYPT_IMAGE, borderwidth=0, command=lambda: execute(True, True))
     share_but = tk.Button(win, image=SHARE_IMAGE, borderwidth=0, command=lambda: execute(False, False))
@@ -124,10 +132,10 @@ def init():
                                    lambda _: decrypt_external_file_but.config(image=DECRYPT_EXTERNAL_FILE_IMAGE))
     info_lab.bind("<Enter>", lambda _: info_lab.config(image=INFO_IMAGE_HOVERED))
     info_lab.bind("<Leave>", lambda _: info_lab.config(image=INFO_IMAGE))
-    info_lab.bind("<Button-1>", lambda _: search_info())
+    info_lab.bind("<Button-1>", lambda _: web.search_info())
     github_lab.bind("<Enter>", lambda _: github_lab.config(image=GITHUB_IMAGE_HOVERED))
     github_lab.bind("<Leave>", lambda _: github_lab.config(image=GITHUB_IMAGE))
-    github_lab.bind("<Button-1>", lambda _: search_github())
+    github_lab.bind("<Button-1>", lambda _: web.search_github())
     settings_lab.bind("<Enter>", lambda _: settings_lab.config(image=SETTINGS_IMAGE_HOVERED))
     settings_lab.bind("<Leave>", lambda _: settings_lab.config(image=SETTINGS_IMAGE))
     settings_lab.bind("<Button-1>", lambda _: show_settings())

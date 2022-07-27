@@ -4,3 +4,4 @@
 src/key_crypter.py
 *.pyc
 src/safedata.py
+setup.py
