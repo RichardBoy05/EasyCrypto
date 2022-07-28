@@ -1,11 +1,14 @@
 import os
 import rsa_utils as rsa
 from stat import S_IREAD
+from logger import default_logger
 
 EXTENSION = '.ezcrypto'
 
 
 def share(path, username):
+    log = default_logger(__name__)
+
     public_key = rsa.get_public_key(username)
 
     if public_key is None:
@@ -28,16 +31,20 @@ def share(path, username):
     if outcome is None:
         return False
 
-    os.rename(path, path[:path.rfind('/'):] + '\\' + new_filename)
-    os.chmod(path[:path.rfind('/'):] + '/' + new_filename, S_IREAD)
+    filedefname = path[:path.rfind('/'):] + '\\' + new_filename
+    os.rename(path, filedefname)
+    os.chmod(filedefname, S_IREAD)
 
     with open(path, 'wb') as file:
         file.write(original_content)
 
+    log_message = f"File shared successfully!\nOriginal file: {path}\nEncrypted file: {filedefname}\nReceiver: {username}"
+    log.info(log_message + '\n\n----------------------------------------------------------------------------------\n\n')
     return True
 
 
 def translate(path):
+    log = default_logger(__name__)
 
     name = path[path.rfind('/') + 1:path.rfind('.'):]
     location = f'Tokens/{name}.key'
@@ -53,7 +60,9 @@ def translate(path):
     if outcome is None:
         return False
 
-    rsa.rename_decrypted_file(path, name)
+    filedefname = rsa.rename_decrypted_file(path, name)
     rsa.clear_storage(location)
 
+    log_message = f"File translated successfully!\nEncrypted file: {path}\nDecrypted file: {filedefname}"
+    log.info(log_message + '\n\n----------------------------------------------------------------------------------\n\n')
     return True

@@ -6,6 +6,7 @@ SEPARATOR = ' = '
 
 
 def initialize():
+
     if os.stat(CONFIG_FILEPATH).st_size != 0:
         return
 

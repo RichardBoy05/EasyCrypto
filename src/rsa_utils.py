@@ -1,10 +1,12 @@
 import os
-import firebase as fb
 import alerts
+import firebase as fb
 from stat import S_IWRITE
 from setup import CRYPT_PATH
+from logger import default_logger
 from cryptography.fernet import Fernet
 from cryptography.fernet import InvalidToken
+from local_crypter import avoid_same_file_name
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import padding
 from safedata import password, obfuscate_name, deobfuscate_name
@@ -32,6 +34,7 @@ def get_public_key(username):
 
 
 def encrypt_file(path):
+    log = default_logger(__name__)
 
     key = Fernet.generate_key()
     encrypter = Fernet(key)
@@ -43,6 +46,7 @@ def encrypt_file(path):
         encrypted_content = encrypter.encrypt(original_content)
     except Exception as e:
         alerts.general_exception_alert(e)
+        log.error("Exception", exc_info=True)
         return None
 
     try:
@@ -50,9 +54,11 @@ def encrypt_file(path):
             file.write(encrypted_content)
     except PermissionError as e:
         alerts.permission_error_alert(e)
+        log.warning("PermissionError", exc_info=True)
         return None
     except Exception as e:
         alerts.general_exception_alert(e)
+        log.error("Exception", exc_info=True)
         return None
 
     return original_content, key
@@ -81,6 +87,7 @@ def publish_encrypted_key(key, new_filename):
     if storage is None:
         return None
 
+    print('Tokens/' + new_filename + '.key')
     if not fb.upload(storage, 'Tokens/' + new_filename + '.key', filepath):
         os.remove(filepath)
         return None
@@ -90,8 +97,8 @@ def publish_encrypted_key(key, new_filename):
 
 
 def change_name(username, filename, extension):
-    new_username = obfuscate_name(username).replace('-', '#')
-    new_filename = obfuscate_name(filename).replace('-', '#') + extension
+    new_username = obfuscate_name(username).replace('-', '§')
+    new_filename = obfuscate_name(filename).replace('-', '§') + extension
     return f'{new_username}-{new_filename}'
 
 
@@ -100,10 +107,10 @@ def get_public_token(location, name):
     if storage is None:
         return None
 
-    if not fb.download(storage, location, CRYPT_PATH, 'temp -' + name):
+    if not fb.download(storage, location, CRYPT_PATH, 'temp - ' + name):
         return None
 
-    encrypted_key_file = os.path.join(CRYPT_PATH, 'temp -' + name)
+    encrypted_key_file = os.path.join(CRYPT_PATH, 'temp - ' + name)
 
     if not os.path.exists(encrypted_key_file):
         alerts.not_shared_alert()
@@ -138,6 +145,8 @@ def decrypt_key(encrypted_key):
 
 
 def decrypt_file(path, key):
+    log = default_logger(__name__)
+
     os.chmod(path, S_IWRITE)
 
     with open(path, 'rb') as file:
@@ -149,9 +158,11 @@ def decrypt_file(path, key):
         decrypted_content = decrypter.decrypt(encrypted_file)
     except InvalidToken:
         alerts.not_encrypted_alert(path[path.rfind('/') + 1::])
+        log.warning("InvalidToken", exc_info=True)
         return None
     except Exception as e:
         alerts.general_exception_alert(e)
+        log.error("Exception", exc_info=True)
         return None
 
     try:
@@ -159,9 +170,11 @@ def decrypt_file(path, key):
             file.write(decrypted_content)
     except PermissionError as e:
         alerts.permission_error_alert(e)
+        log.warning("PermissionError", exc_info=True)
         return None
     except Exception as e:
         alerts.general_exception_alert(e)
+        log.error("Exception", exc_info=True)
         return None
 
     return True
@@ -169,9 +182,13 @@ def decrypt_file(path, key):
 
 def rename_decrypted_file(path, name):
     name_encoded = name.split('-', 1)[1]
-    new_name = deobfuscate_name(name_encoded).replace('#', '-')
+    new_name = deobfuscate_name(name_encoded).replace('§', '-')
+    new_path = path[:path.rfind('/'):] + '\\' + new_name
 
-    os.rename(path, path[:path.rfind('/'):] + '\\' + new_name)
+    defname = avoid_same_file_name(new_path, new_path[new_path.rfind('.')::])
+
+    os.rename(path, defname)
+    return defname
 
 
 def clear_storage(location):
@@ -181,6 +198,7 @@ def clear_storage(location):
         return None
 
     storage.delete(location, None)
+
 
 def is_already_encrypted():
     pass

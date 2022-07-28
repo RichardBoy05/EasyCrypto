@@ -1,8 +1,11 @@
 import tkinter as tk
+from logger import default_logger
 from alerts import empty_box_alert, different_passwords_alert
 
 
 def ask_password(main_win, to_encrypt, one_file):
+    log = default_logger(__name__)
+
     win = tk.Toplevel(main_win)
     win.grab_set()
 
@@ -118,4 +121,5 @@ def ask_password(main_win, to_encrypt, one_file):
     try:
         return execute.password, check_var.get()
     except AttributeError:
+        log.warning("AttributeError", exc_info=True)
         return None, check_var.get()

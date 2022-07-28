@@ -5,8 +5,9 @@ import config
 import tkinter as tk
 import firebase as fb
 import winsound as sound
+from stat import S_IWRITE
 from web import search_info
-from storing import unlock_file
+from logger import setup_logger, default_logger
 
 PATH = os.path.join(os.getenv('APPDATA'), 'EasyCrypto')
 CRYPT_PATH = os.path.join(PATH, 'crypt')
@@ -20,6 +21,8 @@ def ask_username(main_win, to_set):
 
 
 def set_username():
+    log = default_logger(__name__)
+
     win = tk.Tk()
     WIDTH = 475
     HEIGHT = 325
@@ -57,9 +60,9 @@ def set_username():
 
     def correct_closing():
         if os.path.exists(PATH):
-            unlock_file(os.path.join(CRYPT_PATH, 'store.json'))
-            unlock_file(os.path.join(PATH, 'config.ini'))
-            shutil.rmtree(PATH)
+            unlock_critical_file(os.path.join(CRYPT_PATH, 'store.json'))
+            unlock_critical_file(os.path.join(PATH, 'config.ini'))
+            shutil.rmtree(PATH, ignore_errors=True)
 
         win.destroy()
         sys.exit()
@@ -95,15 +98,18 @@ def set_username():
         if os.path.exists(filepath):
             os.remove(filepath)
     except PermissionError:
-        pass
+        log.warning("PermissionError", exc_info=True)
 
     try:
         return execute.username
     except AttributeError:
+        log.warning("AttributeError", exc_info=True)
         return None
 
 
 def get_username(main_win):
+    log = default_logger(__name__)
+
     win = tk.Toplevel(main_win)
     win.grab_set()
 
@@ -165,6 +171,7 @@ def get_username(main_win):
     try:
         return execute.username
     except AttributeError:
+        log.warning("AttributeError", exc_info=True)
         return None
 
 
@@ -229,10 +236,15 @@ def check_username(username, to_set, canva, canva_id):
             canva.itemconfig(canva_id, text='Questo utente non esiste!', fill='red')
             return
 
-        current_username = config.parse_with_key('Username')
-        if username == current_username:
-            canva.itemconfig(canva_id, text='Questo utente sei tu! Non puoi condividere un file con te stesso!',
-                             fill='red')
-            return
+        # current_username = config.parse_with_key('Username')
+        # if username == current_username:
+        #     canva.itemconfig(canva_id, text='Questo utente sei tu! Non puoi condividere un file con te stesso!',
+        #                      fill='red')
+        #     return
 
     canva.itemconfig(canva_id, text='Nickname valido!', fill='green')
+
+
+def unlock_critical_file(file):
+    os.system("attrib -h " + file)
+    os.chmod(file, S_IWRITE)

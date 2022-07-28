@@ -1,6 +1,7 @@
 import json
 import os
 import key_crypter as kc
+from logger import default_logger
 from stat import S_IREAD, S_IWRITE
 
 
@@ -46,6 +47,9 @@ def parse_json(content, storage, check):
     except KeyError:
 
         lock_file(storage)
+
+        log = default_logger(__name__)
+        log.warning("KeyError", exc_info=True)
         return None
 
 

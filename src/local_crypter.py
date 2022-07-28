@@ -8,6 +8,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.exceptions import InvalidKey
 from stat import S_IREAD, S_IWRITE
+from logger import default_logger
 from alerts import already_encrypted_alert, not_encrypted_alert, permission_error_alert, general_exception_alert, \
     invalid_password
 
@@ -18,6 +19,8 @@ STORAGE = os.path.join(CRYPT_PATH, 'store.json')
 
 
 def encrypt(path, password, keep_copy):
+    log = default_logger(__name__)
+
     with open(path, 'rb') as file:
         original_file = file.read()
 
@@ -43,6 +46,7 @@ def encrypt(path, password, keep_copy):
         encrypted_content = encrypter.encrypt(original_file)
     except Exception as e:
         general_exception_alert(e)
+        log.error("Exception", exc_info=True)
         return False
 
     st.store_data(STORAGE, encrypted_content, salt, key)
@@ -52,9 +56,11 @@ def encrypt(path, password, keep_copy):
             file.write(encrypted_content)
     except PermissionError as e:
         permission_error_alert(e)
+        log.warning("PermissionError", exc_info=True)
         return False
     except Exception as e:
         general_exception_alert(e)
+        log.error("Exception", exc_info=True)
         return False
 
     filedefname = renaming_file(path, '.ezcrypto', True)
@@ -64,10 +70,14 @@ def encrypt(path, password, keep_copy):
         with open(path, "wb") as file:
             file.write(original_file)
 
+    log_message = f"File encrypted successfully!\nOriginal file: {path}\nEncrypted file: {filedefname}"
+    log.info(log_message + '\n\n----------------------------------------------------------------------------------\n\n')
     return True
 
 
 def decrypt(path, password, keep_copy):
+    log = default_logger(__name__)
+
     os.chmod(path, S_IWRITE)
 
     with open(path, 'rb') as file:
@@ -93,6 +103,7 @@ def decrypt(path, password, keep_copy):
         kdf.verify(password, base64.urlsafe_b64decode(key))
     except InvalidKey:
         invalid_password(path[path.rfind('/') + 1:path.rfind('.'):])
+        log.warning("InvalidKey", exc_info=True)
         st.lock_file(STORAGE)
         return False
 
@@ -107,9 +118,11 @@ def decrypt(path, password, keep_copy):
         decrypted_content = decrypter.decrypt(original_file)
     except InvalidToken:
         not_encrypted_alert(path[path.rfind('/') + 1::])
+        log.warning("InvalidToken", exc_info=True)
         return False
     except Exception as e:
         general_exception_alert(e)
+        log.error("Exception", exc_info=True)
         return False
 
     try:
@@ -117,9 +130,11 @@ def decrypt(path, password, keep_copy):
             file.write(decrypted_content)
     except PermissionError as e:
         permission_error_alert(e)
+        log.warning("PermissionError", exc_info=True)
         return False
     except Exception as e:
         general_exception_alert(e)
+        log.error("Exception", exc_info=True)
         return False
 
     filedefname = renaming_file(path, '.ezcrypto', False)
@@ -132,6 +147,8 @@ def decrypt(path, password, keep_copy):
     else:
         st.remove_json_key(STORAGE, pair[1], file_content)
 
+    log_message = f"File decrypted successfully!\nEncrypted file: {path}\nDecrypted file: {filedefname}"
+    log.info(log_message + '\n\n----------------------------------------------------------------------------------\n\n')
     return True
 
 
