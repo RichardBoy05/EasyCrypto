@@ -1,22 +1,25 @@
 import os
-import rsa_utils as rsa
+from rsa_utils import Share
+from rsa_utils import Translate
 from stat import S_IREAD
-from logger import default_logger
-from safedata import obfuscate_name
+from logger import Logger
+from safedata import Safe
+
 
 EXTENSION = '.ezcrypto'
 
 
 def share(path, username):
-    log = default_logger(__name__)
+    print('qui')
+    log = Logger(__name__).default()
 
-    public_key = rsa.get_public_key(username)
+    public_key = Share.get_public_key(username)
 
     if public_key is None:
         return False
 
-    pair = rsa.encrypt_file(path)
-    rsa.add_metadata(path, username)
+    pair = Share.encrypt_file(path)
+    Share.add_metadata(path, username)
 
     original_content = pair[0]
     key = pair[1]
@@ -24,11 +27,11 @@ def share(path, username):
     if key is None:
         return False
 
-    new_filename = rsa.change_name(EXTENSION)
+    new_filename = Share.change_name(EXTENSION)
     new_path = os.path.join(path[:path.rfind('/') + 1:], new_filename)
 
-    encrypted_key = rsa.encrypt_key(key, public_key)
-    outcome = rsa.publish_encrypted_key(encrypted_key, username, path[path.rfind('/') + 1::])
+    encrypted_key = Share.encrypt_key(key, public_key)
+    outcome = Share.publish_encrypted_key(encrypted_key, username, path[path.rfind('/') + 1::])
 
     if outcome is None:
         return False
@@ -45,30 +48,34 @@ def share(path, username):
 
 
 def translate(path):
-    log = default_logger(__name__)
+    log = Logger(__name__).default()
 
-    metadata = rsa.get_metadata(path)
+    metadata = Translate.get_metadata(path)
 
     if metadata is None:
         return False
 
     username = metadata[0]
     filename = metadata[1]
-    location = f'Tokens/{obfuscate_name(username)}-{obfuscate_name(filename)}.key'
+    location = f'Tokens/{Safe.obfuscate_name(username)}-{Safe.obfuscate_name(filename)}.key'
 
-    encrypted_key = rsa.get_public_token(location, path[path.rfind('/') + 1::])
+    encrypted_key = Translate.get_public_token(location, path[path.rfind('/') + 1::])
 
     if encrypted_key is None:
         return False
 
-    key = rsa.decrypt_key(encrypted_key)
-    outcome = rsa.decrypt_file(path, key)
+    key = Translate.decrypt_key(encrypted_key)
+
+    if key is None:
+        return False
+
+    outcome = Translate.decrypt_file(path, key)
 
     if outcome is None:
         return False
 
-    filedefname = rsa.rename_decrypted_file(path, filename)
-    rsa.clear_storage(location)
+    filedefname = Translate.rename_decrypted_file(path, filename)
+    Translate.clear_storage(location)
 
     log_message = f"File translated successfully!\nEncrypted file: {path}\nDecrypted file: {filedefname}"
     log.info(log_message + '\n\n----------------------------------------------------------------------------------\n\n')

@@ -1,13 +1,13 @@
 import os
 import sys
+import web
 import shutil
-import config
 import tkinter as tk
-import firebase as fb
 import winsound as sound
 from stat import S_IWRITE
-from web import search_info
-from logger import setup_logger, default_logger
+from config import Config
+from logger import Logger
+from firebase import Firebase as Fb
 
 PATH = os.path.join(os.getenv('APPDATA'), 'EasyCrypto')
 CRYPT_PATH = os.path.join(PATH, 'crypt')
@@ -21,7 +21,7 @@ def ask_username(main_win, to_set):
 
 
 def set_username():
-    log = default_logger(__name__)
+    log = Logger(__name__).default()
 
     win = tk.Tk()
     WIDTH = 475
@@ -56,7 +56,7 @@ def set_username():
         y_coord = win.winfo_pointery() - win.winfo_rooty()
 
         if 164 < x_coord < 282 and 301 < y_coord < 318:
-            search_info()
+            web.Browser('https://github.com/RichardBoy05/EasyCrypto/blob/main/README.md').search()
 
     def correct_closing():
         if os.path.exists(PATH):
@@ -76,7 +76,7 @@ def set_username():
     canva_id = background_canv.create_text(30, 202, text='Nickname troppo corto!', fill='red', anchor='w')
     user_entry = tk.Entry(win, width=19, font=def_font, relief='groove', textvariable=data)
     go_but = tk.Button(win, image=GO_IMAGE, borderwidth=0, bg='#160ca3',
-                       command=lambda: execute(win, storage, user_entry.get(), True, background_canv, canva_id))
+                       command=lambda: execute(win, user_entry.get(), True, background_canv, canva_id))
 
     # configuration and bindings
 
@@ -108,7 +108,7 @@ def set_username():
 
 
 def get_username(main_win):
-    log = default_logger(__name__)
+    log = Logger(__name__).default()
 
     win = tk.Toplevel(main_win)
     win.grab_set()
@@ -148,7 +148,7 @@ def get_username(main_win):
     canva_id = background_canv.create_text(30, 158, text='Nickname troppo corto!', fill='red', anchor='w')
     user_entry = tk.Entry(win, width=19, font=def_font, relief='ridge', bd=2, textvariable=data)
     go_but = tk.Button(win, image=GO_IMAGE, borderwidth=0, bg='#160ca3',
-                       command=lambda: execute(win, storage, user_entry.get(), False, background_canv, canva_id))
+                       command=lambda: execute(win, user_entry.get(), False, background_canv, canva_id))
 
     # configuration and bindings
 
@@ -176,17 +176,14 @@ def get_username(main_win):
 
 
 def get_users_list(filepath):
-    storage = fb.connect()
-    if storage is None:
+
+    if not Fb().download('users_list.txt', PATH, filepath):
         return None
 
-    if not fb.download(storage, 'users_list.txt', PATH, filepath):
-        return None
-
-    return storage
+    return Fb().get_storage()
 
 
-def execute(win, storage, nickname, to_set, background_canva, canva_id):
+def execute(win, nickname, to_set, background_canva, canva_id):
     if background_canva.itemcget(canva_id, 'text') != 'Nickname valido!':
         sound.PlaySound('SystemHand', sound.SND_ASYNC)
         return
@@ -203,7 +200,7 @@ def execute(win, storage, nickname, to_set, background_canva, canva_id):
             file.seek(0, 2)
             file.write(execute.username)
 
-        if not fb.upload(storage, 'users_list.txt', filepath):
+        if not Fb().upload('users_list.txt', filepath):
             execute.username = None
 
     win.destroy()
@@ -228,19 +225,19 @@ def check_username(username, to_set, canva, canva_id):
     filepath = os.path.join(PATH, 'users_list.txt')
 
     if to_set:
-        if not fb.is_username_unique(filepath, username):
+        if not is_username_unique(filepath, username):
             canva.itemconfig(canva_id, text='Nickname già esistente!', fill='red')
             return
     else:
-        if fb.is_username_unique(filepath, username):
+        if is_username_unique(filepath, username):
             canva.itemconfig(canva_id, text='Questo utente non esiste!', fill='red')
             return
 
-        # current_username = config.parse_with_key('Username')
-        # if username == current_username:
-        #     canva.itemconfig(canva_id, text='Questo utente sei tu! Non puoi condividere un file con te stesso!',
-        #                      fill='red')
-        #     return
+        current_username = Config.parse_with_key('Username')
+        if username == current_username:
+            canva.itemconfig(canva_id, text='Questo utente sei tu! Non puoi condividere un file con te stesso!',
+                             fill='red')
+            return
 
     canva.itemconfig(canva_id, text='Nickname valido!', fill='green')
 
@@ -248,3 +245,14 @@ def check_username(username, to_set, canva, canva_id):
 def unlock_critical_file(file):
     os.system("attrib -h " + file)
     os.chmod(file, S_IWRITE)
+
+
+def is_username_unique(filepath, username):
+    with open(filepath, 'r') as file:
+        lines = file.read().splitlines()
+
+    for line in lines:
+        if line == username:
+            return False
+
+    return True

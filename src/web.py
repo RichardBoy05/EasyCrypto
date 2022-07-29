@@ -1,9 +1,10 @@
 import webbrowser
 
 
-def search_info():
-    webbrowser.open('https://github.com/RichardBoy05/EasyCrypto/blob/main/README.md')
+class Browser:
 
+    def __init__(self, url):
+        self.url = url
 
-def search_github():
-    webbrowser.open('https://github.com/RichardBoy05/EasyCrypto')
+    def search(self):
+        webbrowser.open(self.url)

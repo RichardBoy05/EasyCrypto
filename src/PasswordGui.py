@@ -1,10 +1,10 @@
 import tkinter as tk
-from logger import default_logger
+from logger import Logger
 from alerts import empty_box_alert, different_passwords_alert
 
 
 def ask_password(main_win, to_encrypt, one_file):
-    log = default_logger(__name__)
+    log = Logger(__name__).default()
 
     win = tk.Toplevel(main_win)
     win.grab_set()

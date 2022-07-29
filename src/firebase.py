@@ -1,82 +1,64 @@
 import os
+import safedata
 import pyrebase
-from usernamegui import ask_username
-from safedata import firebaseConfig
+from logger import Logger
 from alerts import connection_error_alert
-from logger import default_logger
-
-PATH = os.path.join(os.getenv('APPDATA'), 'EasyCrypto')
-CRYPT_PATH = os.path.join(PATH, 'crypt')
 
 
-def connect():
+class Firebase:
 
-    log = default_logger(__name__)
+    def __init__(self):
+        self.log = Logger(__name__).default()
 
-    try:
-        firebase = pyrebase.initialize_app(firebaseConfig)
-        storage = firebase.storage()
-    except Exception as e:
-        connection_error_alert(e)
-        log.error("Exception", exc_info=True)
-        return None
+        try:
+            firebase = pyrebase.initialize_app(safedata.Safe.firebaseConfig)
+            storage = firebase.storage()
+            self.storage = storage
+        except Exception as e:
+            connection_error_alert(e)
+            self.log.error("Exception", exc_info=True)
+            self.storage = None
 
-    return storage
+    def get_storage(self):
+        return self.storage
 
-
-def download(storage, location, localpath, localname):
-    log = default_logger(__name__)
-
-    try:
-        storage.child(location).download(localpath, os.path.join(localpath, localname))
+    def check_connection(self):
+        if self.get_storage() is None:
+            return False
         return True
-    except Exception as e:
-        connection_error_alert(e)
-        log.error("Exception", exc_info=True)
-        return False
 
-
-def upload(storage, location, local_location):
-    log = default_logger(__name__)
-
-    try:
-        storage.child(location).put(local_location)
-        return True
-    except Exception as e:
-        connection_error_alert(e)
-        log.error("Exception", exc_info=True)
-        return False
-
-
-def delete(storage, location):
-    log = default_logger(__name__)
-
-    try:
-        storage.delete(location, None)
-        return True
-    except Exception as e:
-        connection_error_alert(e)
-        log.error("Exception", exc_info=True)
-        return False
-
-
-def user(main_win, to_set):  # if to_set is True -> set username else get username
-
-    username = ask_username(main_win, to_set)
-
-    if username is None:
-        return None
-
-    return username
-
-
-def is_username_unique(filepath, username):
-    with open(filepath, 'r') as file:
-        lines = file.read().splitlines()
-
-    for line in lines:
-        if line == username:
+    def upload(self, location, local_location):
+        if not self.check_connection():
             return False
 
-    return True
+        try:
+            self.get_storage().child(location).put(local_location)
+            return True
+        except Exception as e:
+            connection_error_alert(e)
+            self.log.error("Exception", exc_info=True)
+            return False
 
+    def download(self, location, localpath, localname):
+        if not self.check_connection():
+            return False
+
+        try:
+            self.get_storage().child(location).download(localpath, os.path.join(localpath, localname))
+            return True
+        except Exception as e:
+            connection_error_alert(e)
+            self.log.error("Exception", exc_info=True)
+            return False
+
+    def delete(self, location):
+        if not self.check_connection():
+            return False
+
+        try:
+            self.get_storage().delete(location, None)
+            return True
+        except Exception as e:
+            connection_error_alert(e)
+            self.log.error("Exception", exc_info=True)
+            return False

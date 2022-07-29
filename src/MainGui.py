@@ -1,7 +1,7 @@
 import web
 import alerts
 import tkinter as tk
-import firebase as fb
+import usernamegui as user
 import local_crypter as lc
 import passwordgui as pwgui
 import rsa_encryption as rsa
@@ -45,7 +45,6 @@ def init():
 
         files = [('Tutti i file', '*.*')]
         path = tk.filedialog.askopenfilenames(title='Seleziona uno o più file...', filetypes=files)
-        tk
 
         if not path:
             return
@@ -82,7 +81,7 @@ def init():
 
         if not is_encrypted and not is_internal:
             has_been_shared = []
-            username = fb.user(win, False)
+            username = user.ask_username(win, False)
 
             if username is None:
                 return
@@ -132,10 +131,10 @@ def init():
                                    lambda _: decrypt_external_file_but.config(image=DECRYPT_EXTERNAL_FILE_IMAGE))
     info_lab.bind("<Enter>", lambda _: info_lab.config(image=INFO_IMAGE_HOVERED))
     info_lab.bind("<Leave>", lambda _: info_lab.config(image=INFO_IMAGE))
-    info_lab.bind("<Button-1>", lambda _: web.search_info())
+    info_lab.bind("<Button-1>", lambda _: web.Browser('https://github.com/RichardBoy05/EasyCrypto/blob/main/README.md').search())
     github_lab.bind("<Enter>", lambda _: github_lab.config(image=GITHUB_IMAGE_HOVERED))
     github_lab.bind("<Leave>", lambda _: github_lab.config(image=GITHUB_IMAGE))
-    github_lab.bind("<Button-1>", lambda _: web.search_github())
+    github_lab.bind("<Button-1>", lambda _: web.Browser('https://github.com/RichardBoy05/EasyCrypto').search())
     settings_lab.bind("<Enter>", lambda _: settings_lab.config(image=SETTINGS_IMAGE_HOVERED))
     settings_lab.bind("<Leave>", lambda _: settings_lab.config(image=SETTINGS_IMAGE))
     settings_lab.bind("<Button-1>", lambda _: show_settings())

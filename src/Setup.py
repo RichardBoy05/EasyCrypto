@@ -1,10 +1,12 @@
 import os
 import sys
-import config
 import shutil
-import firebase as fb
-from safedata import password
-from storing import lock_file, unlock_file
+import safedata
+from logger import Logger
+from config import Config
+from firebase import Firebase as Fb
+from usernamegui import ask_username
+from storing import File
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -17,21 +19,22 @@ LOGS_PATH = os.path.join(PATH, 'logs')
 
 
 def setup():
+
     if os.path.exists(CONFIG_FILE):
         return False
 
-    local_setup()
+    log = local_setup()
 
     log.info('Asking username...')
-    username = fb.user(None, True)
+    username = ask_username(None, True)
     log.info(f'Username successfully set: {username}')
 
     if username is None:
-        shutdown()
+        shutdown(log)
 
-    configuration(username)
-    generate_keys()
-    upload_public_key(username)
+    configuration(username, log)
+    generate_keys(log)
+    upload_public_key(username, log)
 
 
 def local_setup():
@@ -41,7 +44,7 @@ def local_setup():
     os.mkdir(PATH)
     os.mkdir(LOGS_PATH)
 
-    init_logger()
+    log = Logger(__name__).setup()
 
     log.info('Setup initialized!')
     log.info(f'Directory created: {PATH}')
@@ -54,25 +57,27 @@ def local_setup():
 
     open(STORAGE_FILE, 'w')
     log.info(f'File created: {STORAGE_FILE}')
-    lock_file(STORAGE_FILE)
+    File(STORAGE_FILE).lock_file()
     log.info(f'File locked: {STORAGE_FILE}')
 
     open(CONFIG_FILE, 'w')
     log.info(f'File created: {CONFIG_FILE}')
 
-    config.initialize()
+    Config.initialize()
     log.info('Configuration file initialized!')
 
+    return log
 
-def configuration(username):
-    config.add_pair(key='Username', value=username)
+
+def configuration(username, log):
+    Config.add_pair(key='Username', value=username)
     log.info(f'New key-value pair added in the configuration file: Username = {username}')
-    lock_file(CONFIG_FILE)
+    File(CONFIG_FILE).lock_file()
     log.info('Configuration file locked!')
     log.info('Configuration file closed!')
 
 
-def generate_keys():
+def generate_keys(log):
     log.info('Generating private key...')
     private_key = rsa.generate_private_key(
         public_exponent=65537,
@@ -84,12 +89,12 @@ def generate_keys():
     priv_pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.BestAvailableEncryption(password)
+        encryption_algorithm=serialization.BestAvailableEncryption(safedata.Safe.password)
     )
 
     with open(CRYPT_PATH + '\\private_key.pem', 'wb') as f:
         f.write(priv_pem)
-    lock_file(CRYPT_PATH + '\\private_key.pem')
+    File(CRYPT_PATH + '\\private_key.pem').lock_file()
     log.info('Private key successfully generated!')
 
     log.info('Generating public key...')
@@ -106,33 +111,26 @@ def generate_keys():
     log.info('Public key successfully generated!')
 
 
-def upload_public_key(username):
+def upload_public_key(username, log):
     log.info('Connecting to the server...')
-    storage = fb.connect()
 
     public_key_file = CRYPT_PATH + '\\public_key.pem'
 
-    if not fb.upload(storage, 'Users/' + username + '.pem', public_key_file):
+    if not Fb().upload('Users/' + username + '.pem', public_key_file):
         log.critical('Public key could not be uploaded to the server...')
-        shutdown()
+        shutdown(log)
 
-    lock_file(public_key_file)
+    File(public_key_file).lock_file()
     log.info('Public key successfully uploaded to the server!')
     log.info('Setup successfully COMPLETED!')
 
 
-def init_logger():
-    from logger import setup_logger
-    global log
-    log = setup_logger(__name__)
-
-
-def shutdown():
+def shutdown(log):
     log.critical('Deleting environment...')
 
     if os.path.exists(PATH) and os.path.exists(STORAGE_FILE) and os.path.exists(CONFIG_FILE):
-        unlock_file(os.path.join(STORAGE_FILE))
-        unlock_file(os.path.join(CONFIG_FILE))
+        File(os.path.join(STORAGE_FILE)).unlock_file()
+        File(os.path.join(CONFIG_FILE)).unlock_file()
 
         shutil.rmtree(PATH, ignore_errors=True)
 

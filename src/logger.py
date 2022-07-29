@@ -1,6 +1,7 @@
 import os
 import logging
 
+
 # LOGGING RULES:
 
 # info = general information
@@ -8,42 +9,42 @@ import logging
 # errors = unexpected exceptions
 # critical = exceptions that prevents the program from running any further
 
-LOGS_PATH = os.path.join(os.path.join(os.path.join(os.getenv('APPDATA'), 'EasyCrypto'), 'logs'))
-SETUP_FILEPATH = os.path.join(LOGS_PATH, 'setup.log')
-DEFAULT_FILEPATH = os.path.join(LOGS_PATH, 'logs.log')
-FORMATTER = '[%(asctime)s][EasyCrypto][%(name)s] -> %(levelname)s: %(message)s'
+class Logger:
+    LOGS_PATH = os.path.join(os.path.join(os.path.join(os.getenv('APPDATA'), 'EasyCrypto'), 'logs'))
+    SETUP_FILEPATH = os.path.join(LOGS_PATH, 'setup.log')
+    DEFAULT_FILEPATH = os.path.join(LOGS_PATH, 'logs.log')
+    FORMATTER = '[%(asctime)s][EasyCrypto][%(name)s] -> %(levelname)s: %(message)s'
 
-logging.basicConfig(level=logging.DEBUG, format=FORMATTER, filemode='a')
+    def __init__(self, module):
+        self.module = module
+        logging.basicConfig(level=logging.DEBUG, format=self.FORMATTER, filemode='a')
 
+    def setup(self):
+        setuplogger = logging.getLogger(self.module)
 
-def setup_logger(module):
+        setup_handler = logging.FileHandler(self.SETUP_FILEPATH)
+        setup_formatter = logging.Formatter(self.FORMATTER)
+        setup_handler.setFormatter(setup_formatter)
+        setuplogger.addHandler(setup_handler)
 
-    setuplogger = logging.getLogger(module)
+        return setuplogger
 
-    setup_handler = logging.FileHandler(SETUP_FILEPATH)
-    setup_formatter = logging.Formatter(FORMATTER)
-    setup_handler.setFormatter(setup_formatter)
-    setuplogger.addHandler(setup_handler)
+    def default(self):
+        if not os.path.exists(self.DEFAULT_FILEPATH):
+            open(self.DEFAULT_FILEPATH, 'w')
 
-    return setuplogger
+        logger = logging.getLogger(self.module)
+        formatter = SeperatedExcFormatter(self.FORMATTER)
 
+        logger.propagate = False
 
-def default_logger(module):
-    if not os.path.exists(DEFAULT_FILEPATH):
-        open(DEFAULT_FILEPATH, 'w')
+        setup_handler = logging.FileHandler(self.DEFAULT_FILEPATH)
+        setup_handler.setFormatter(formatter)
 
-    logger = logging.getLogger(module)
-    formatter = SeperatedExcFormatter(FORMATTER)
+        if not logger.hasHandlers():
+            logger.addHandler(setup_handler)
 
-    logger.propagate = False
-
-    setup_handler = logging.FileHandler(DEFAULT_FILEPATH)
-    setup_handler.setFormatter(formatter)
-
-    if not logger.hasHandlers():
-        logger.addHandler(setup_handler)
-
-    return logger
+        return logger
 
 
 class SeperatedExcFormatter(logging.Formatter):  # source: https://stackoverflow.com/a/59092065/14554798

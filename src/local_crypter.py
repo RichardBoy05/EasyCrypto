@@ -1,14 +1,14 @@
 import os
 import base64
-import key_crypter as kc
-import storing as st
+from key_crypter import KeyCrypter
+from storing import File, JsonFile
 from cryptography.fernet import Fernet
 from cryptography.fernet import InvalidToken
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.exceptions import InvalidKey
 from stat import S_IREAD, S_IWRITE
-from logger import default_logger
+from logger import Logger
 from alerts import already_encrypted_alert, not_encrypted_alert, permission_error_alert, general_exception_alert, \
     invalid_password
 
@@ -19,12 +19,12 @@ STORAGE = os.path.join(CRYPT_PATH, 'store.json')
 
 
 def encrypt(path, password, keep_copy):
-    log = default_logger(__name__)
+    log = Logger(__name__).default()
 
     with open(path, 'rb') as file:
         original_file = file.read()
 
-    is_already_encrypted = st.parse_json(original_file.decode('ISO-8859-1'), STORAGE, True)
+    is_already_encrypted = JsonFile(STORAGE).parse_json(original_file.decode('ISO-8859-1'), True)
     if is_already_encrypted:
         already_encrypted_alert(path[path.rfind('/') + 1::])
         return False
@@ -49,7 +49,7 @@ def encrypt(path, password, keep_copy):
         log.error("Exception", exc_info=True)
         return False
 
-    st.store_data(STORAGE, encrypted_content, salt, key)
+    JsonFile(STORAGE).store_data(encrypted_content, salt, key)
 
     try:
         with open(path, 'wb') as file:
@@ -76,21 +76,21 @@ def encrypt(path, password, keep_copy):
 
 
 def decrypt(path, password, keep_copy):
-    log = default_logger(__name__)
+    log = Logger(__name__).default()
 
     os.chmod(path, S_IWRITE)
 
     with open(path, 'rb') as file:
         file_content = file.read().decode('ISO-8859-1')
 
-    pair = st.parse_json(file_content, STORAGE, False)
+    pair = JsonFile(STORAGE).parse_json(file_content, False)
 
     if pair is None:
         not_encrypted_alert(path[path.rfind('/') + 1::])
         return False
 
     salt = pair[0][0].encode('ISO-8859-1')
-    key = kc.decrypt_key(pair[0][1].encode('utf-8'))
+    key = KeyCrypter(pair[0][1].encode('utf-8')).decrypt_key()
 
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
@@ -104,7 +104,7 @@ def decrypt(path, password, keep_copy):
     except InvalidKey:
         invalid_password(path[path.rfind('/') + 1:path.rfind('.'):])
         log.warning("InvalidKey", exc_info=True)
-        st.lock_file(STORAGE)
+        File(STORAGE).lock_file()
         return False
 
     # decryption
@@ -145,7 +145,7 @@ def decrypt(path, password, keep_copy):
             file.write(original_file)
             os.chmod(path, S_IREAD)
     else:
-        st.remove_json_key(STORAGE, pair[1], file_content)
+        JsonFile(STORAGE).remove_json_key(pair[1], file_content)
 
     log_message = f"File decrypted successfully!\nEncrypted file: {path}\nDecrypted file: {filedefname}"
     log.info(log_message + '\n\n----------------------------------------------------------------------------------\n\n')
