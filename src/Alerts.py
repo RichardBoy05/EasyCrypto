@@ -12,9 +12,12 @@ def decrypted_successfully_alert(tuple_length):
 
 
 def shared_successfully_alert(tuple_length):
-    ctypes.windll.user32.MessageBoxW(0, "Hai ottenuto una copia criptata del tuo file, pronta per essere condivisa!", "Success!",
+    ctypes.windll.user32.MessageBoxW(0, "Hai ottenuto una copia criptata del tuo file, pronta per essere condivisa!",
+                                     "Success!",
                                      64) if tuple_length == 1 else \
-        ctypes.windll.user32.MessageBoxW(0, "Hai ottenuto delle copie criptate dei tuoi file, pronte per essere condivise!", "Success!", 64)
+        ctypes.windll.user32.MessageBoxW(0,
+                                         "Hai ottenuto delle copie criptate dei tuoi file, pronte per essere condivise!",
+                                         "Success!", 64)
 
 
 def translated_successfully_alert(tuple_length):
@@ -65,3 +68,7 @@ def connection_error_alert(e):
     ctypes.windll.user32.MessageBoxW(0,
                                      f"Impossibile connettersi al database!\nAssicurati di esssere connesso alla rete!\n\nUlteriori informazioni:\n{e}",
                                      "Error!", 16)
+
+
+def metadata_error_alert():
+    ctypes.windll.user32.MessageBoxW(0, "Errore nell'analisi dei metadati del file!", "Error!", 16)
