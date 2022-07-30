@@ -2,11 +2,11 @@ import os
 import sys
 import shutil
 import safedata
+from storing import File
 from logger import Logger
 from config import Config
 from firebase import Firebase as Fb
-from usernamegui import ask_username
-from storing import File
+from setusernamegui import set_username
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -26,7 +26,7 @@ def setup():
     log = local_setup()
 
     log.info('Asking username...')
-    username = ask_username(None, True)
+    username = set_username()
     log.info(f'Username successfully set: {username}')
 
     if username is None:

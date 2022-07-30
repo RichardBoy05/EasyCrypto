@@ -72,3 +72,8 @@ def connection_error_alert(e):
 
 def metadata_error_alert():
     ctypes.windll.user32.MessageBoxW(0, "Errore nell'analisi dei metadati del file!", "Error!", 16)
+
+
+def duplicated_share_alert(username, filename):
+    ctypes.windll.user32.MessageBoxW(0, f"Attenzione! Qualcuno ha già condiviso con '{username}' un file denominato '{filename}'. Modifica il nome del file per poterlo condividere!",
+                                     "Error!", 16)

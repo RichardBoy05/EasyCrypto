@@ -46,6 +46,7 @@ class Firebase:
         try:
             self.get_storage().child(location).download(localpath, os.path.join(localpath, localname))
             return True
+
         except Exception as e:
             connection_error_alert(e)
             self.log.error("Exception", exc_info=True)

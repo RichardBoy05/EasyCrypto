@@ -1,6 +1,7 @@
 import os
 import json
 import alerts
+import string
 import random as rand
 from safedata import Safe
 from stat import S_IWRITE
@@ -16,7 +17,27 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes, serialization
 
 
-class Share:
+class RsaUtils:
+
+    @staticmethod
+    def pop_invalid_characters(name):
+        valid_characters = list(string.ascii_letters + string.digits + '-_.() ')
+        newname = [i if i in valid_characters else '§' for i in name]
+        return ''.join(newname)
+
+
+class Share(RsaUtils):
+
+    @staticmethod
+    def check_duped_filenames(location):
+        if not Fb().download(location, CRYPT_PATH, 'temp.txt'):
+            return None
+
+        if os.path.exists(os.path.join(CRYPT_PATH, 'temp.txt')):
+            os.remove(os.path.join(CRYPT_PATH, 'temp.txt'))
+            return True
+
+        return False
 
     @staticmethod
     def get_public_key(username):
@@ -77,6 +98,10 @@ class Share:
             file.write((content + metadata).encode('utf-8'))
 
     @staticmethod
+    def change_name(extension):
+        return ''.join(rand.choice(ascii_letters) for _ in range(15)) + extension
+
+    @staticmethod
     def encrypt_key(key, public_key):
         encrypted_key = public_key.encrypt(
             key,
@@ -89,18 +114,13 @@ class Share:
         return encrypted_key
 
     @staticmethod
-    def change_name(extension):
-        return ''.join(rand.choice(ascii_letters) for _ in range(15)) + extension
-
-    @staticmethod
-    def publish_encrypted_key(key, username, original_name):
+    def publish_encrypted_key(key, storage_location):
         filepath = os.path.join(CRYPT_PATH, 'tempkey.key')
 
         with open(filepath, 'wb') as file:
             file.write(key)
 
-        if not Fb().upload(f'Tokens/{Safe.obfuscate_name(username)}-{Safe.obfuscate_name(original_name)}.key',
-                           filepath):
+        if not Fb().upload(storage_location, filepath):
             os.remove(filepath)
             return None
 
@@ -112,7 +132,7 @@ class Share:
         pass
 
 
-class Translate:
+class Translate(RsaUtils):
 
     @staticmethod
     def get_metadata(path):

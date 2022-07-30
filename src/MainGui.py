@@ -1,11 +1,13 @@
+import os.path
+
 import web
 import alerts
 import tkinter as tk
-import usernamegui as user
 import local_crypter as lc
 import passwordgui as pwgui
 import rsa_encryption as rsa
 from tkinter import filedialog
+from getusernamegui import get_username
 
 
 def init():
@@ -36,8 +38,9 @@ def init():
 
     win.title('EasyCrypto')
     win.geometry(str(WIDTH) + 'x' + str(HEIGHT) + '+' + str(x) + '+' + str(y))
-    win.resizable(0, 0)
+    win.resizable(False, False)
     win.iconphoto(True, WINDOW_ICON)
+    win.protocol("WM_DELETE_WINDOW", lambda: correct_closing(win))
 
     # functions
 
@@ -81,7 +84,7 @@ def init():
 
         if not is_encrypted and not is_internal:
             has_been_shared = []
-            username = user.ask_username(win, False)
+            username = get_username(win)
 
             if username is None:
                 return
@@ -151,3 +154,14 @@ def init():
     settings_lab.place(x=419, y=428)
 
     win.mainloop()
+
+
+def correct_closing(win):
+
+    PATH = os.path.join(os.getenv('APPDATA'), 'EasyCrypto')
+    CRYPT_PATH = os.path.join(PATH, 'crypt')
+
+    if os.path.exists(os.path.join(CRYPT_PATH, "firstboot")):
+        os.remove(os.path.join(CRYPT_PATH, "firstboot"))
+
+    win.destroy()

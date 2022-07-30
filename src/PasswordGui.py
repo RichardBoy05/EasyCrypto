@@ -25,7 +25,7 @@ def ask_password(main_win, to_encrypt, one_file):
 
     win.title('EasyCrypto')
     win.geometry(str(WIDTH) + 'x' + str(HEIGHT) + '+' + str(x) + '+' + str(y))
-    win.resizable(0, 0)
+    win.resizable(False, False)
     win.iconphoto(True, WINDOW_ICON)
 
     def_font = ('Arial Baltic', 10)
