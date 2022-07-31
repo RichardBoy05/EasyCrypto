@@ -4,8 +4,10 @@ import web
 import alerts
 import tkinter as tk
 import local_crypter as lc
+from counter import Counter
 import passwordgui as pwgui
 from rsa_utils import Share
+from config import Config
 import rsa_encryption as rsa
 from tkinter import filedialog
 from getusernamegui import get_username
@@ -61,7 +63,12 @@ def init():
             if not password:
                 return
 
-            has_been_encrypted = [lc.encrypt(i, password.encode('utf-8'), keep_copy) for i in path]
+            has_been_encrypted = [lc.encrypt(win, i, password.encode('utf-8'), keep_copy) for i in path]
+
+            for i in has_been_encrypted:
+                if i:
+                    Counter(win, background_canv.itemcget(encrypt_count, 'text'), encrypt_count).update('TotalEncryptions')
+
             if all(has_been_encrypted):
                 alerts.encrypted_successfully_alert(len(path))
             return
@@ -74,7 +81,11 @@ def init():
             if not password:
                 return
 
-            has_been_decrypted = [lc.decrypt(i, password.encode('utf-8'), keep_copy) for i in path]
+            has_been_decrypted = [lc.decrypt(win, i, password.encode('utf-8'), keep_copy) for i in path]
+
+            for i in has_been_decrypted:
+                if i:
+                    Counter(win, background_canv.itemcget(decrypt_count, 'text'), decrypt_count).update('TotalDecryptions')
 
             if all(has_been_decrypted):
                 alerts.decrypted_successfully_alert(len(path))
@@ -92,6 +103,10 @@ def init():
 
             has_been_shared = [rsa.share(i, username) for i in fixed_path]
 
+            for i in has_been_shared:
+                if i:
+                    Counter(win, background_canv.itemcget(share_count, 'text'), share_count).update('TotalShares')
+
             if all(has_been_shared):
                 alerts.shared_successfully_alert(len(fixed_path))
             return
@@ -99,6 +114,10 @@ def init():
         if is_encrypted and not is_internal:
 
             has_been_translated = [rsa.translate(i) for i in path]
+
+            for i in has_been_translated:
+                if i:
+                    Counter(win, background_canv.itemcget(share_count, 'text'), translate_count).update('TotalTranslations')
 
             if all(has_been_translated):
                 alerts.translated_successfully_alert(len(path))
@@ -109,7 +128,10 @@ def init():
 
     # widgets
 
-    background_lab = tk.Label(win, image=BACKGROUND_IMAGE)
+    counter_font = ('Courier', 14)
+
+    background_canv = tk.Canvas(win, width=450, height=450)
+    background_canv.create_image(226, 226, image=BACKGROUND_IMAGE)
     encrypt_but = tk.Button(win, image=CRYPT_IMAGE, borderwidth=0, bg='#0c11a8', command=lambda: execute(False, True))
     decrypt_but = tk.Button(win, image=DECRYPT_IMAGE, borderwidth=0, bg='#f0a000', command=lambda: execute(True, True))
     share_but = tk.Button(win, image=SHARE_IMAGE, borderwidth=0, bg='#0c11a8', command=lambda: execute(False, False))
@@ -118,6 +140,11 @@ def init():
     info_lab = tk.Label(win, image=INFO_IMAGE, borderwidth=0, bg='#cbcbcb')
     github_lab = tk.Label(win, image=GITHUB_IMAGE, borderwidth=0, bg='#cbcbcb')
     settings_lab = tk.Label(win, image=SETTINGS_IMAGE, borderwidth=0, bg='#cbcbcb')
+
+    encrypt_count = background_canv.create_text(154, 161, text=Config.parse_with_key('TotalEncryptions', True), font=counter_font, anchor='w')
+    decrypt_count = background_canv.create_text(154, 200, text=Config.parse_with_key('TotalDecryptions', True), font=counter_font, anchor='w')
+    share_count = background_canv.create_text(387, 161, text=Config.parse_with_key('TotalShares', True), font=counter_font, anchor='w')
+    translate_count = background_canv.create_text(387, 200, text=Config.parse_with_key('TotalTranslations', True), font=counter_font, anchor='w')
 
     # Hover events
 
@@ -144,7 +171,7 @@ def init():
 
     # placing
 
-    background_lab.place(x=-2, y=-2)
+    background_canv.place(x=-2, y=-2)
     encrypt_but.place(x=34, y=230)
     decrypt_but.place(x=244, y=230)
     decrypt_external_file_but.place(x=244, y=330)

@@ -18,7 +18,7 @@ CRYPT_PATH = os.path.join(PATH, 'crypt')
 STORAGE = os.path.join(CRYPT_PATH, 'store.json')
 
 
-def encrypt(path, password, keep_copy):
+def encrypt(win, path, password, keep_copy):
     log = Logger(__name__).default()
 
     with open(path, 'rb') as file:
@@ -72,10 +72,11 @@ def encrypt(path, password, keep_copy):
 
     log_message = f"File encrypted successfully!\nOriginal file: {path}\nEncrypted file: {filedefname}"
     log.info(log_message + '\n\n----------------------------------------------------------------------------------\n\n')
+
     return True
 
 
-def decrypt(path, password, keep_copy):
+def decrypt(win, path, password, keep_copy):
     log = Logger(__name__).default()
 
     os.chmod(path, S_IWRITE)

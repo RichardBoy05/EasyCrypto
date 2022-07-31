@@ -72,6 +72,15 @@ def local_setup():
 def configuration(username, log):
     Config.add_pair(key='Username', value=username)
     log.info(f'New key-value pair added in the configuration file: Username = {username}')
+    Config.add_pair(key='TotalEncryptions', value='0')
+    log.info(f'New key-value pair added in the configuration file: TotalEncryptions = 0')
+    Config.add_pair(key='TotalDecryptions', value='0')
+    log.info(f'New key-value pair added in the configuration file: TotalDecryptions = 0')
+    Config.add_pair(key='TotalShares', value='0')
+    log.info(f'New key-value pair added in the configuration file: TotalShares = 0')
+    Config.add_pair(key='TotalTranslations', value='0')
+    log.info(f'New key-value pair added in the configuration file: TotalTranslations = 0')
+
     File(CONFIG_FILE).lock_file()
     log.info('Configuration file locked!')
     log.info('Configuration file closed!')
