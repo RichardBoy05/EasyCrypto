@@ -1,7 +1,6 @@
 import os
 import string
 import winsound as sound
-from stat import S_IWRITE
 from config import Config
 from firebase import Firebase as Fb
 
@@ -67,11 +66,11 @@ class Username:
         filepath = os.path.join(PATH, 'users_list.txt')
 
         if to_set:
-            if not cls.is_username_unique(filepath, username):
+            if not cls.__is_username_unique(filepath, username):
                 canva.itemconfig(canva_id, text='Nickname già esistente!', fill='red')
                 return
         else:
-            if cls.is_username_unique(filepath, username):
+            if cls.__is_username_unique(filepath, username):
                 canva.itemconfig(canva_id, text='Questo utente non esiste!', fill='red')
                 return
 
@@ -84,12 +83,7 @@ class Username:
         canva.itemconfig(canva_id, text='Nickname valido!', fill='green')
 
     @staticmethod
-    def unlock_critical_file(file):
-        os.system("attrib -h " + file)
-        os.chmod(file, S_IWRITE)
-
-    @staticmethod
-    def is_username_unique(filepath, username):
+    def __is_username_unique(filepath, username):
         with open(filepath, 'r') as file:
             lines = file.read().splitlines()
 

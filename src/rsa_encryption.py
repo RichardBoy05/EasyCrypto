@@ -12,13 +12,14 @@ EXTENSION = '.ezcrypto'
 def share(path, username):
     log = Logger(__name__).default()
 
-    storage_name = Share.pop_invalid_characters(path[path.rfind('/') + 1::])
+    name = path[path.rfind('/') + 1::]
+    storage_name = Share.pop_invalid_characters(name)
     storage_location = f'Tokens/{Safe.obfuscate_name(username)},{Safe.obfuscate_name(storage_name)}.key'
     duplicated = Share.check_duped_filenames(storage_location)
 
     if duplicated is None or duplicated:
         if duplicated:
-            duplicated_share_alert(username, path[path.rfind('/') + 1::])
+            duplicated_share_alert(username, name)
 
         return False
 

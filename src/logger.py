@@ -34,7 +34,7 @@ class Logger:
             open(self.DEFAULT_FILEPATH, 'w')
 
         logger = logging.getLogger(self.module)
-        formatter = SeperatedExcFormatter(self.FORMATTER)
+        formatter = _SeperatedExcFormatter(self.FORMATTER)
 
         logger.propagate = False
 
@@ -47,7 +47,7 @@ class Logger:
         return logger
 
 
-class SeperatedExcFormatter(logging.Formatter):  # source: https://stackoverflow.com/a/59092065/14554798
+class _SeperatedExcFormatter(logging.Formatter):  # source: https://stackoverflow.com/a/59092065/14554798
     def formatException(self, exc_info):
         result = super().formatException(exc_info)
         if exc_info:

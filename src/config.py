@@ -15,14 +15,14 @@ class Config:
         with open(cls.CONFIG_FILEPATH, 'w') as file:
             file.write('[EasyCrypto Configuration File]')
 
-        cls.add_date_comment()
+        cls.__add_date_comment()
 
     @classmethod
     def add_pair(cls, key, value):
         with open(cls.CONFIG_FILEPATH, 'a') as file:
             file.write('\n' + key + cls.SEPARATOR + value)
 
-        cls.add_date_comment()
+        cls.__add_date_comment()
 
     @classmethod
     def parse_with_key(cls, key):
@@ -44,7 +44,7 @@ class Config:
         return None
 
     @classmethod
-    def add_date_comment(cls):
+    def __add_date_comment(cls):
         current_date = dt.datetime.now()
         string_date = current_date.strftime('%d/%m/%Y, %H:%M:%S')
 

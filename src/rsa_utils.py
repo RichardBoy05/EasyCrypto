@@ -29,6 +29,26 @@ class RsaUtils:
 class Share(RsaUtils):
 
     @staticmethod
+    def is_already_shared(path):
+        log = Logger(__name__).default()
+
+        with open(path, 'rb') as file:
+            # noinspection PyBroadException
+            try:
+                content = file.read().decode('utf-8')
+            except UnicodeDecodeError:
+                log.warning('UnicodeDecodeError', exc_info=True)
+                return False
+            except Exception:
+                log.error('Exception', exc_info=True)
+                return False
+
+        if '----[METADATA]--->' in content:
+            alerts.already_shared_alert(path[path.rfind('/') + 1::])
+            return True
+        return False
+
+    @staticmethod
     def check_duped_filenames(location):
         if not Fb().download(location, CRYPT_PATH, 'temp.txt'):
             return None
@@ -89,7 +109,7 @@ class Share(RsaUtils):
     @staticmethod
     def add_metadata(path, username):
         filename = path[path.rfind('/') + 1::]
-        metadata = f'----[METADATA]--->{{"Username": "{username}", "Filename": "{filename}"}}'
+        metadata = f'----[METADATA]--->{{"Username": "{Safe.obfuscate_metadata(username)}", "Filename": "{Safe.obfuscate_metadata(filename)}"}}'
 
         with open(path, 'rb') as file:
             content = file.read().decode('utf-8')
@@ -127,10 +147,6 @@ class Share(RsaUtils):
         os.remove(filepath)
         return True
 
-    @staticmethod
-    def is_already_encrypted():
-        pass
-
 
 class Translate(RsaUtils):
 
@@ -150,8 +166,8 @@ class Translate(RsaUtils):
         dictionary = json.loads(metadata)
 
         try:
-            username = dictionary['Username']
-            filename = dictionary['Filename']
+            username = Safe.obfuscate_metadata(dictionary['Username'])
+            filename = Safe.obfuscate_metadata(dictionary['Filename'])
         except KeyError:
             alerts.metadata_error_alert()
             log.error('KeyError', exc_info=True)

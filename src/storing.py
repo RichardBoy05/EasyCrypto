@@ -34,12 +34,12 @@ class JsonFile(File):
         record = {encrypted_content.decode('utf-8'): [salt.decode('ISO-8859-1'), Kc(key).encrypt_key().decode('utf-8')]}
 
         self.unlock_file()
-        self.unfix_json_format()
+        self.__unfix_json_format()
 
         with open(self.filepath, 'a') as file:
             file.write(json.dumps(record, indent=4) + '\n')
 
-        self.fix_json_format()
+        self.__fix_json_format()
         self.lock_file()
 
     def parse_json(self, content, check):
@@ -89,10 +89,10 @@ class JsonFile(File):
             with open(self.filepath, 'a') as file:
                 file.write(json.dumps(record, indent=4) + '\n')
 
-        self.fix_json_format()
+        self.__fix_json_format()
         self.lock_file()
 
-    def fix_json_format(self):
+    def __fix_json_format(self):
         with open(self.filepath, 'r') as file:
             content = file.read()
 
@@ -103,7 +103,7 @@ class JsonFile(File):
         with open(self.filepath, 'w') as file:
             file.write(content)
 
-    def unfix_json_format(self):
+    def __unfix_json_format(self):
         with open(self.filepath, 'r') as file:
             content = file.read()
 
