@@ -13,6 +13,3 @@ class Counter:
         self.win.nametowidget('.!canvas').itemconfig(self.canvaid, text=str(new_value))
         Config.edit_key_value_pair(key, new_value)
 
-    @staticmethod
-    def get_current_amount():
-        pass

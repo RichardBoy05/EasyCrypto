@@ -155,7 +155,13 @@ class Translate(RsaUtils):
         log = Logger(__name__).default()
 
         with open(path, 'rb') as file:
-            content = file.read().decode('utf-8')
+            try:
+                content = file.read().decode('utf-8')
+            except UnicodeDecodeError:
+                log.warning('UnicodeDecodeError', exc_info=True)
+                alerts.not_shared_alert()
+                return None
+
         try:
             metadata = content.split('----[METADATA]--->', 1)[1]
         except IndexError:

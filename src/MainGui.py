@@ -1,103 +1,156 @@
-import os.path
-
+import os
 import web
-import alerts
+import alerts as alt
 import tkinter as tk
-import local_crypter as lc
-from counter import Counter
-import passwordgui as pwgui
-from rsa_utils import Share
 from config import Config
+import local_crypter as lc
+import passwordgui as pwgui
+from counter import Counter
+from rsa_utils import Share
 import rsa_encryption as rsa
 from tkinter import filedialog
 from getusernamegui import get_username
 
 
-def init():
-    win = tk.Tk()
+class MainGui:
 
-    WIDTH = 450
-    HEIGHT = 450
+    def __init__(self):
 
-    WINDOW_ICON = tk.PhotoImage(file='res/logo.png', master=win)
-    BACKGROUND_IMAGE = tk.PhotoImage(file='res/background.png', master=win)
-    CRYPT_IMAGE = tk.PhotoImage(file='res/crypt.png', master=win)
-    CRYPT_IMAGE_HOVERED = tk.PhotoImage(file='res/crypt_hovered.png', master=win)
-    DECRYPT_IMAGE = tk.PhotoImage(file='res/decrypt.png', master=win)
-    DECRYPT_IMAGE_HOVERED = tk.PhotoImage(file='res/decrypt_hovered.png', master=win)
-    SHARE_IMAGE = tk.PhotoImage(file='res/share.png', master=win)
-    SHARE_IMAGE_HOVERED = tk.PhotoImage(file='res/share_hovered.png', master=win)
-    DECRYPT_EXTERNAL_FILE_IMAGE = tk.PhotoImage(file='res/decrypt_external_file.png', master=win)
-    DECRYPT_EXTERNAL_FILE_IMAGE_HOVERED = tk.PhotoImage(file='res/decrypt_external_file_hovered.png', master=win)
-    INFO_IMAGE = tk.PhotoImage(file='res/info.png', master=win)
-    INFO_IMAGE_HOVERED = tk.PhotoImage(file='res/info_hovered.png', master=win)
-    GITHUB_IMAGE = tk.PhotoImage(file='res/github.png', master=win)
-    GITHUB_IMAGE_HOVERED = tk.PhotoImage(file='res/github_hovered.png', master=win)
-    SETTINGS_IMAGE = tk.PhotoImage(file='res/settings.png', master=win)
-    SETTINGS_IMAGE_HOVERED = tk.PhotoImage(file='res/settings_hovered.png', master=win)
+        self.win = tk.Tk()
 
-    x = int(win.winfo_screenwidth() / 2 - (WIDTH / 2))
-    y = int(win.winfo_screenheight() / 2 - (HEIGHT / 2))
+        self.WIDTH = 450
+        self.HEIGHT = 450
+        self.WINDOW_ICON = tk.PhotoImage(file='res/logo.png', master=self.win)
+        self.BACKGROUND_IMAGE = tk.PhotoImage(file='res/background.png', master=self.win)
+        self.x = int(self.win.winfo_screenwidth() / 2 - (self.WIDTH / 2))
+        self.y = int(self.win.winfo_screenheight() / 2 - (self.HEIGHT / 2))
 
-    win.title('EasyCrypto')
-    win.geometry(str(WIDTH) + 'x' + str(HEIGHT) + '+' + str(x) + '+' + str(y))
-    win.resizable(False, False)
-    win.iconphoto(True, WINDOW_ICON)
-    win.protocol("WM_DELETE_WINDOW", lambda: correct_closing(win))
+        self.win.title('EasyCrypto')
+        self.win.geometry(str(self.WIDTH) + 'x' + str(self.HEIGHT) + '+' + str(self.x) + '+' + str(self.y))
+        self.win.resizable(False, False)
+        self.win.iconphoto(True, self.WINDOW_ICON)
+        self.win.protocol("WM_DELETE_WINDOW", lambda: self.correct_closing())
+        self.bg = tk.Canvas(self.win, width=450, height=450)
+        self.bg.create_image(226, 226, image=self.BACKGROUND_IMAGE)
 
-    # functions
+        self.counter_font = ('Courier', 14)
+        self.readme = 'https://github.com/RichardBoy05/EasyCrypto/blob/main/README.md'
+        self.explorer_files = [('Tutti i file', '*.*')]
 
-    def execute(is_encrypted, is_internal):
+        enc_text = Config.parse_with_key('TotalEncryptions', True)
+        dec_text = Config.parse_with_key('TotalDecryptions', True)
+        shr_text = Config.parse_with_key('TotalShares', True)
+        trs_text = Config.parse_with_key('TotalTranslations', True)
+        self.encrypt_count = self.bg.create_text(162, 161, text=enc_text, font=self.counter_font, anchor='center')
+        self.decrypt_count = self.bg.create_text(412, 161, text=dec_text, font=self.counter_font, anchor='center')
+        self.share_count = self.bg.create_text(162, 200, text=shr_text, font=self.counter_font, anchor='center')
+        self.translate_count = self.bg.create_text(412, 200, text=trs_text, font=self.counter_font, anchor='center')
 
-        files = [('Tutti i file', '*.*')]
-        path = tk.filedialog.askopenfilenames(title='Seleziona uno o più file...', filetypes=files)
+        ENC_IMG = tk.PhotoImage(file='res/crypt.png', master=self.win)
+        ENC_IMG_HOV = tk.PhotoImage(file='res/crypt_hovered.png', master=self.win)
+        DEC_IMG = tk.PhotoImage(file='res/decrypt.png', master=self.win)
+        DEC_IMG_HOV = tk.PhotoImage(file='res/decrypt_hovered.png', master=self.win)
+        SHR_IMG = tk.PhotoImage(file='res/share.png', master=self.win)
+        SHR_IMG_HOV = tk.PhotoImage(file='res/share_hovered.png', master=self.win)
+        TRS_IMG = tk.PhotoImage(file='res/translate.png', master=self.win)
+        TRS_IMG_HOV = tk.PhotoImage(file='res/translate_hovered.png', master=self.win)
+        INFO_IMG = tk.PhotoImage(file='res/info.png', master=self.win)
+        INFO_IMG_HOV = tk.PhotoImage(file='res/info_hovered.png', master=self.win)
+        GIT_IMG = tk.PhotoImage(file='res/github.png', master=self.win)
+        GIT_IMG_HOV = tk.PhotoImage(file='res/github_hovered.png', master=self.win)
+        SETTINGS_IMG = tk.PhotoImage(file='res/settings.png', master=self.win)
+        SETTINGS_IMG_HOV = tk.PhotoImage(file='res/settings_hovered.png', master=self.win)
+
+        # widgets
+
+        enc_but = tk.Button(self.win, image=ENC_IMG, bd=0, bg='#0c11a8', command=lambda: self.execute('encrypt'))
+        dec_but = tk.Button(self.win, image=DEC_IMG, bd=0, bg='#f0a000', command=lambda: self.execute('decrypt'))
+        shr_but = tk.Button(self.win, image=SHR_IMG, bd=0, bg='#0c11a8', command=lambda: self.execute('share'))
+        trs_but = tk.Button(self.win, image=TRS_IMG, bd=0, bg='#f0a000', command=lambda: self.execute('translate'))
+        info_lab = tk.Label(self.win, image=INFO_IMG, bd=0, bg='#cbcbcb')
+        git_lab = tk.Label(self.win, image=GIT_IMG, bd=0, bg='#cbcbcb')
+        settings_lab = tk.Label(self.win, image=SETTINGS_IMG, bd=0, bg='#cbcbcb')
+
+        # Hover events
+
+        enc_but.bind("<Enter>", lambda _: enc_but.config(image=ENC_IMG_HOV))
+        enc_but.bind("<Leave>", lambda _: enc_but.config(image=ENC_IMG))
+        dec_but.bind("<Enter>", lambda _: dec_but.config(image=DEC_IMG_HOV))
+        dec_but.bind("<Leave>", lambda _: dec_but.config(image=DEC_IMG))
+        shr_but.bind("<Enter>", lambda _: shr_but.config(image=SHR_IMG_HOV))
+        shr_but.bind("<Leave>", lambda _: shr_but.config(image=SHR_IMG))
+        trs_but.bind("<Enter>", lambda _: trs_but.config(image=TRS_IMG_HOV))
+        trs_but.bind("<Leave>", lambda _: trs_but.config(image=TRS_IMG))
+        info_lab.bind("<Enter>", lambda _: info_lab.config(image=INFO_IMG_HOV))
+        info_lab.bind("<Leave>", lambda _: info_lab.config(image=INFO_IMG))
+        info_lab.bind("<Button-1>", lambda _: web.Browser(self.readme).search())
+        git_lab.bind("<Enter>", lambda _: git_lab.config(image=GIT_IMG_HOV))
+        git_lab.bind("<Leave>", lambda _: git_lab.config(image=GIT_IMG))
+        git_lab.bind("<Button-1>", lambda _: web.Browser('https://github.com/RichardBoy05/EasyCrypto').search())
+        settings_lab.bind("<Enter>", lambda _: settings_lab.config(image=SETTINGS_IMG_HOV))
+        settings_lab.bind("<Leave>", lambda _: settings_lab.config(image=SETTINGS_IMG))
+
+        # placing
+
+        self.bg.place(x=-2, y=-2)
+        enc_but.place(x=28, y=237)
+        dec_but.place(x=248, y=237)
+        trs_but.place(x=248, y=337)
+        shr_but.place(x=28, y=337)
+        info_lab.place(x=363, y=428)
+        git_lab.place(x=391, y=428)
+        settings_lab.place(x=419, y=428)
+
+        self.win.mainloop()
+
+    def execute(self, task):
+
+        path = tk.filedialog.askopenfilenames(title='Seleziona uno o più file...', filetypes=self.explorer_files)
 
         if not path:
             return
 
-        if not is_encrypted and is_internal:
-            result = pwgui.ask_password(win, True, True if len(path) == 1 else False)
-            password = result[0]
-            keep_copy = result[1]
-
+        if task == 'encrypt':
+            result = pwgui.ask_password(self.win, True, True if len(path) == 1 else False)
+            password, keepcopy = result
             if not password:
                 return
 
-            has_been_encrypted = [lc.encrypt(win, i, password.encode('utf-8'), keep_copy) for i in path]
+            has_been_encrypted = [lc.encrypt(self.win, i, password.encode('utf-8'), keepcopy) for i in path]
 
             for i in has_been_encrypted:
                 if i:
-                    Counter(win, background_canv.itemcget(encrypt_count, 'text'), encrypt_count).update('TotalEncryptions')
+                    Counter(self.win, self.bg.itemcget(self.encrypt_count, 'text'),
+                            self.encrypt_count).update('TotalEncryptions')
 
             if all(has_been_encrypted):
-                alerts.encrypted_successfully_alert(len(path))
+                alt.encrypted_successfully_alert(len(path))
             return
 
-        if is_encrypted and is_internal:
-            result = pwgui.ask_password(win, False, True if len(path) == 1 else False)
-            password = result[0]
-            keep_copy = result[1]
-
+        if task == 'decrypt':
+            result = pwgui.ask_password(self.win, False, True if len(path) == 1 else False)
+            password, keepcopy = result
             if not password:
                 return
 
-            has_been_decrypted = [lc.decrypt(win, i, password.encode('utf-8'), keep_copy) for i in path]
+            has_been_decrypted = [lc.decrypt(self.win, i, password.encode('utf-8'), keepcopy) for i in path]
 
             for i in has_been_decrypted:
                 if i:
-                    Counter(win, background_canv.itemcget(decrypt_count, 'text'), decrypt_count).update('TotalDecryptions')
+                    Counter(self.win, self.bg.itemcget(self.decrypt_count, 'text'),
+                            self.decrypt_count).update('TotalDecryptions')
 
             if all(has_been_decrypted):
-                alerts.decrypted_successfully_alert(len(path))
+                alt.decrypted_successfully_alert(len(path))
             return
 
-        if not is_encrypted and not is_internal:
+        if task == 'share':
 
             fixed_path = [i for i in path if not Share.is_already_shared(i)]
             if len(fixed_path) == 0:
                 return
 
-            username = get_username(win)
+            username = get_username(self.win)
             if username is None:
                 return
 
@@ -105,89 +158,34 @@ def init():
 
             for i in has_been_shared:
                 if i:
-                    Counter(win, background_canv.itemcget(share_count, 'text'), share_count).update('TotalShares')
+                    Counter(self.win, self.bg.itemcget(self.share_count, 'text'), self.share_count).update('TotalShares')
 
             if all(has_been_shared):
-                alerts.shared_successfully_alert(len(fixed_path))
+                alt.shared_successfully_alert(len(fixed_path))
             return
 
-        if is_encrypted and not is_internal:
+        if task == 'translate':
 
             has_been_translated = [rsa.translate(i) for i in path]
 
             for i in has_been_translated:
                 if i:
-                    Counter(win, background_canv.itemcget(share_count, 'text'), translate_count).update('TotalTranslations')
+                    Counter(self.win, self.bg.itemcget(self.share_count, 'text'),
+                            self.translate_count).update('TotalTranslations')
 
             if all(has_been_translated):
-                alerts.translated_successfully_alert(len(path))
+                alt.translated_successfully_alert(len(path))
             return
 
-    def show_settings():
-        pass
+    def correct_closing(self):
+        PATH = os.path.join(os.getenv('APPDATA'), 'EasyCrypto')
+        CRYPT_PATH = os.path.join(PATH, 'crypt')
 
-    # widgets
+        if os.path.exists(os.path.join(CRYPT_PATH, "firstboot")):
+            os.remove(os.path.join(CRYPT_PATH, "firstboot"))
 
-    counter_font = ('Courier', 14)
-
-    background_canv = tk.Canvas(win, width=450, height=450)
-    background_canv.create_image(226, 226, image=BACKGROUND_IMAGE)
-    encrypt_but = tk.Button(win, image=CRYPT_IMAGE, borderwidth=0, bg='#0c11a8', command=lambda: execute(False, True))
-    decrypt_but = tk.Button(win, image=DECRYPT_IMAGE, borderwidth=0, bg='#f0a000', command=lambda: execute(True, True))
-    share_but = tk.Button(win, image=SHARE_IMAGE, borderwidth=0, bg='#0c11a8', command=lambda: execute(False, False))
-    decrypt_external_file_but = tk.Button(win, image=DECRYPT_EXTERNAL_FILE_IMAGE, borderwidth=0, bg='#f0a000',
-                                          command=lambda: execute(True, False))
-    info_lab = tk.Label(win, image=INFO_IMAGE, borderwidth=0, bg='#cbcbcb')
-    github_lab = tk.Label(win, image=GITHUB_IMAGE, borderwidth=0, bg='#cbcbcb')
-    settings_lab = tk.Label(win, image=SETTINGS_IMAGE, borderwidth=0, bg='#cbcbcb')
-
-    encrypt_count = background_canv.create_text(154, 161, text=Config.parse_with_key('TotalEncryptions', True), font=counter_font, anchor='w')
-    decrypt_count = background_canv.create_text(154, 200, text=Config.parse_with_key('TotalDecryptions', True), font=counter_font, anchor='w')
-    share_count = background_canv.create_text(387, 161, text=Config.parse_with_key('TotalShares', True), font=counter_font, anchor='w')
-    translate_count = background_canv.create_text(387, 200, text=Config.parse_with_key('TotalTranslations', True), font=counter_font, anchor='w')
-
-    # Hover events
-
-    encrypt_but.bind("<Enter>", lambda _: encrypt_but.config(image=CRYPT_IMAGE_HOVERED))
-    encrypt_but.bind("<Leave>", lambda _: encrypt_but.config(image=CRYPT_IMAGE))
-    decrypt_but.bind("<Enter>", lambda _: decrypt_but.config(image=DECRYPT_IMAGE_HOVERED))
-    decrypt_but.bind("<Leave>", lambda _: decrypt_but.config(image=DECRYPT_IMAGE))
-    share_but.bind("<Enter>", lambda _: share_but.config(image=SHARE_IMAGE_HOVERED))
-    share_but.bind("<Leave>", lambda _: share_but.config(image=SHARE_IMAGE))
-    decrypt_external_file_but.bind("<Enter>", lambda _: decrypt_external_file_but.config(
-        image=DECRYPT_EXTERNAL_FILE_IMAGE_HOVERED))
-    decrypt_external_file_but.bind("<Leave>",
-                                   lambda _: decrypt_external_file_but.config(image=DECRYPT_EXTERNAL_FILE_IMAGE))
-    info_lab.bind("<Enter>", lambda _: info_lab.config(image=INFO_IMAGE_HOVERED))
-    info_lab.bind("<Leave>", lambda _: info_lab.config(image=INFO_IMAGE))
-    info_lab.bind("<Button-1>",
-                  lambda _: web.Browser('https://github.com/RichardBoy05/EasyCrypto/blob/main/README.md').search())
-    github_lab.bind("<Enter>", lambda _: github_lab.config(image=GITHUB_IMAGE_HOVERED))
-    github_lab.bind("<Leave>", lambda _: github_lab.config(image=GITHUB_IMAGE))
-    github_lab.bind("<Button-1>", lambda _: web.Browser('https://github.com/RichardBoy05/EasyCrypto').search())
-    settings_lab.bind("<Enter>", lambda _: settings_lab.config(image=SETTINGS_IMAGE_HOVERED))
-    settings_lab.bind("<Leave>", lambda _: settings_lab.config(image=SETTINGS_IMAGE))
-    settings_lab.bind("<Button-1>", lambda _: show_settings())
-
-    # placing
-
-    background_canv.place(x=-2, y=-2)
-    encrypt_but.place(x=34, y=230)
-    decrypt_but.place(x=244, y=230)
-    decrypt_external_file_but.place(x=244, y=330)
-    share_but.place(x=34, y=330)
-    info_lab.place(x=363, y=428)
-    github_lab.place(x=391, y=428)
-    settings_lab.place(x=419, y=428)
-
-    win.mainloop()
+        self.win.destroy()
 
 
-def correct_closing(win):
-    PATH = os.path.join(os.getenv('APPDATA'), 'EasyCrypto')
-    CRYPT_PATH = os.path.join(PATH, 'crypt')
-
-    if os.path.exists(os.path.join(CRYPT_PATH, "firstboot")):
-        os.remove(os.path.join(CRYPT_PATH, "firstboot"))
-
-    win.destroy()
+def init():
+    MainGui()
