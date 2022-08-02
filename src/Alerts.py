@@ -84,3 +84,15 @@ def already_shared_alert(filename):
     ctypes.windll.user32.MessageBoxW(0,
                                      f"Hai già condiviso il file '{filename}'!",
                                      "Error!", 16)
+
+
+def issue_reported_alert():
+    ctypes.windll.user32.MessageBoxW(0, "Problema segnalato con successo!", "Success!", 64)
+
+
+def issue_error_alert(response):
+    ctypes.windll.user32.MessageBoxW(0, f"Impossibile segnalare il problema!\n{response}", "Error!", 16)
+
+
+def issue_connection_error_alert(e):
+    ctypes.windll.user32.MessageBoxW(0, f"Errore di connessione! Assicurati di essere connesso alla rete!\n\n{e}", "Error!", 16)

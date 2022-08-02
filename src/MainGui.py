@@ -9,6 +9,7 @@ from counter import Counter
 from rsa_utils import Share
 import rsa_encryption as rsa
 from tkinter import filedialog
+from issuesgui import IssueGui
 from getusernamegui import get_username
 
 
@@ -18,20 +19,20 @@ class MainGui:
 
         self.win = tk.Tk()
 
-        self.WIDTH = 450
-        self.HEIGHT = 450
-        self.WINDOW_ICON = tk.PhotoImage(file='res/logo.png', master=self.win)
-        self.BACKGROUND_IMAGE = tk.PhotoImage(file='res/background.png', master=self.win)
-        self.x = int(self.win.winfo_screenwidth() / 2 - (self.WIDTH / 2))
-        self.y = int(self.win.winfo_screenheight() / 2 - (self.HEIGHT / 2))
+        self.width = 450
+        self.height = 450
+        self.icon = tk.PhotoImage(file='res/logo.png', master=self.win)
+        self.background = tk.PhotoImage(file='res/background.png', master=self.win)
+        self.x = int(self.win.winfo_screenwidth() / 2 - (self.width / 2))
+        self.y = int(self.win.winfo_screenheight() / 2 - (self.height / 2))
 
         self.win.title('EasyCrypto')
-        self.win.geometry(str(self.WIDTH) + 'x' + str(self.HEIGHT) + '+' + str(self.x) + '+' + str(self.y))
+        self.win.geometry('%ix%i+%i+%i' % (self.width, self.height, self.x, self.y))
         self.win.resizable(False, False)
-        self.win.iconphoto(True, self.WINDOW_ICON)
+        self.win.iconphoto(True, self.icon)
         self.win.protocol("WM_DELETE_WINDOW", lambda: self.correct_closing())
         self.bg = tk.Canvas(self.win, width=450, height=450)
-        self.bg.create_image(226, 226, image=self.BACKGROUND_IMAGE)
+        self.bg.create_image(226, 226, image=self.background)
 
         self.counter_font = ('Courier', 14)
         self.readme = 'https://github.com/RichardBoy05/EasyCrypto/blob/main/README.md'
@@ -89,6 +90,7 @@ class MainGui:
         git_lab.bind("<Button-1>", lambda _: web.Browser('https://github.com/RichardBoy05/EasyCrypto').search())
         settings_lab.bind("<Enter>", lambda _: settings_lab.config(image=SETTINGS_IMG_HOV))
         settings_lab.bind("<Leave>", lambda _: settings_lab.config(image=SETTINGS_IMG))
+        settings_lab.bind("<Button-1>", lambda _: IssueGui(self.win))
 
         # placing
 
