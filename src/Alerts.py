@@ -95,4 +95,9 @@ def issue_error_alert(response):
 
 
 def issue_connection_error_alert(e):
-    ctypes.windll.user32.MessageBoxW(0, f"Errore di connessione! Assicurati di essere connesso alla rete!\n\n{e}", "Error!", 16)
+    ctypes.windll.user32.MessageBoxW(0, f"Errore di connessione! Assicurati di essere connesso alla rete!\n\n{e}",
+                                     "Error!", 16)
+
+
+def empty_issue_attachment_alert(filename):
+    ctypes.windll.user32.MessageBoxW(0, f"L'allegato {filename} non è stato inviato poiché è vuoto!", "Warning!", 16)
