@@ -30,7 +30,7 @@ class MainGui:
         self.win.geometry('%ix%i+%i+%i' % (self.width, self.height, self.x, self.y))
         self.win.resizable(False, False)
         self.win.iconphoto(True, self.icon)
-        self.win.protocol("WM_DELETE_WINDOW", lambda: self.correct_closing())
+        self.win.protocol("WM_DELETE_WINDOW", self.correct_closing)
         self.bg = tk.Canvas(self.win, width=450, height=450)
         self.bg.create_image(226, 226, image=self.background)
 

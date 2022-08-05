@@ -2,47 +2,63 @@ import tkinter.ttk
 import tkinter as tk
 from typing import Literal
 import tkinter.font as tkfont
+from tktooltip import ToolTip
+from tkinter import filedialog
 
 
-class IssueGui(tk.Tk):
+class IssueGui(tk.Toplevel):
     def __init__(self, win):
         super().__init__()
+        self.win = win
+        win.withdraw()
 
         self.grab_set()
 
-        self.width = 600
-        self.height = 350
+        self.width = 405
+        self.height = 525
         self.icon = tk.PhotoImage(file='res/logo.png', master=self)
         self.x = int(self.winfo_screenwidth() / 2 - (self.width / 2))
         self.y = int(self.winfo_screenheight() / 2 - (self.height / 2))
+        self.protocol("WM_DELETE_WINDOW", self.close)
+        self.explorer_files = [('Tutti i file', '*.*')]
+        self.attachments = []
 
         self.title('Effettua una segnalazione...')
         self.geometry('{}x{}+{}+{}'.format(self.width, self.height, self.x, self.y))
         self.resizable(False, False)
         self.iconphoto(True, self.icon)
 
+        # images
+
+        self.BG_IMG = tk.PhotoImage(file='res/issuegui_background.png', master=self)
+        self.BACKBUT_IMG = tk.PhotoImage(file='res/backbut.png', master=self)
+        self.BACKBUT_IMG_HOV = tk.PhotoImage(file='res/backbut_hovered.png', master=self)
+
         # fonts
 
-        self.title_font = tkfont.Font(family='Calibri', size=14)
-        self.labels_font = tkfont.Font(family='Calibri', size=13)
+        self.title_font = tkfont.Font(family='Calibri', size=13)
+        self.labels_font = tkfont.Font(family='Calibri', size=12)
         self.text_font = tkfont.Font(family='Calibri', size=11)
-
-        # text variables
-
-        self.labels_var = tk.StringVar()
 
         # widgets
 
-        self.title = tk.Entry(self, font=self.title_font, width=21, foreground='gray')
-        self.tags = ['Bug', 'Aiuto', 'Domanda', 'Suggerimento']
-        self.labels = tk.ttk.Combobox(self, width=11, state='readonly', takefocus=0, font=self.labels_font,
-                                      foreground='darkgray', values=self.tags)
-        self.text = tk.Text(self, width=50, height=15, font=self.text_font, foreground='gray', wrap='word')
+        self.bg = tk.Canvas(self, width=405, height=525)
+        self.bg.create_image(204, 264, image=self.BG_IMG)
+        self.title = tk.Entry(self, font=self.title_font, width=25, foreground='gray', relief='ridge', bd=2)
+        self.tags = [' Bug', ' Aiuto', ' Domanda', ' Suggerimento']
+        self.container = tk.Frame(self, width=120, height=27, relief='ridge', bd=1)
+        self.labels = tk.ttk.Combobox(self.container, width=12, state='readonly', takefocus=0, font=self.labels_font,
+                                      foreground='gray', values=self.tags)
+        self.text = tk.Text(self, width=50, height=13, font=self.text_font, foreground='gray', wrap='word', padx=5,
+                            pady=5, relief='ridge', bd=2)
+        self.attach_but = tk.Button(self, width=35, height=1, command=self.get_attachments)
+        self.remove_attach_but = tk.Button(self, width=5, height=1, command=self.remove_attachments)
+        self.back_lab = tk.Label(self, image=self.BACKBUT_IMG, bg='#f0f67c')
 
         # configuration and bindings
 
-        self.title_default = 'Titolo'
-        self.box_default = 'Tipo'
+        self.title_default = ' Titolo'
+        self.box_default = ' Tipo'
         self.text_default = 'Inserisci una descrizione generale del problema...'
         self.title.insert(0, self.title_default)
         self.labels.set(self.box_default)
@@ -54,15 +70,28 @@ class IssueGui(tk.Tk):
         self.text.bind("<FocusOut>", lambda _: self.handle_unfocused_widget('text'))
         self.title.bind("<Control-BackSpace>", lambda _: self.ctrldel_delete('title'))
         self.text.bind("<Control-BackSpace>", lambda _: self.ctrldel_delete('text'))
+        self.back_lab.bind('<Button-1>', lambda _: self.close())
+        self.back_lab.bind("<Enter>", lambda _: self.back_lab.config(image=self.BACKBUT_IMG_HOV))
+        self.back_lab.bind("<Leave>", lambda _: self.back_lab.config(image=self.BACKBUT_IMG))
 
         self.option_add("*TCombobox*Listbox*Font", self.labels_font)
         self.labels.bind('<<ComboboxSelected>>', lambda _: self.focus())
 
+        # tooltips
+
+        self.default_attach_text = 'Nessuno allegato selezionato!'
+        self.attach_tip = ToolTip(self.attach_but, msg=self.default_attach_text, delay=0.5)
+
         # placing
 
-        self.title.place(x=20, y=25)
-        self.labels.place(x=252, y=25)
-        self.text.place(x=20, y=60)
+        self.bg.place(x=-2, y=-2)
+        self.title.place(x=20, y=85)
+        self.container.place(x=262, y=85)
+        self.labels.pack()
+        self.text.place(x=20, y=124)
+        self.attach_but.place(x=20, y=381)
+        self.remove_attach_but.place(x=300, y=381)
+        self.back_lab.place(x=6, y=480)
 
         self.mainloop()
 
@@ -140,3 +169,20 @@ class IssueGui(tk.Tk):
             if i != ' ':
                 return string
             return IssueGui.space_correction(string[1::])
+
+    def get_attachments(self) -> None:
+        path = filedialog.askopenfilenames(title='Seleziona uno o più allegati...', filetypes=self.explorer_files)
+        for i in path:
+            if i not in self.attachments:
+                self.attachments.append(i)
+
+        self.attach_tip.__setattr__('msg', f'{len(self.attachments)} allegati: {str(self.attachments)}')
+
+    def remove_attachments(self):
+
+        self.attachments.clear()
+        self.attach_tip.__setattr__('msg', self.default_attach_text)
+
+    def close(self) -> None:
+        self.destroy()
+        self.win.deiconify()
