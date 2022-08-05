@@ -1,3 +1,4 @@
+import web
 import tkinter.ttk
 import tkinter as tk
 from typing import Literal
@@ -6,7 +7,8 @@ from tktooltip import ToolTip
 from tkinter import filedialog
 
 
-class IssueGui(tk.Toplevel):
+class IssueGui(
+    tk.Toplevel):  # come evento aggiungi che copia link github negli appunti per esempio e vedi se fare che tsto default ritorna quando testo in binaoc
     def __init__(self, win):
         super().__init__()
         self.win = win
@@ -33,6 +35,8 @@ class IssueGui(tk.Toplevel):
         self.BG_IMG = tk.PhotoImage(file='res/issuegui_background.png', master=self)
         self.BACKBUT_IMG = tk.PhotoImage(file='res/backbut.png', master=self)
         self.BACKBUT_IMG_HOV = tk.PhotoImage(file='res/backbut_hovered.png', master=self)
+        self.MARKDOWN_IMG = tk.PhotoImage(file='res/markdown.png', master=self)
+        self.MARKDOWN_IMG_HOV = tk.PhotoImage(file='res/markdown_hovered.png', master=self)
 
         # fonts
 
@@ -44,6 +48,7 @@ class IssueGui(tk.Toplevel):
 
         self.bg = tk.Canvas(self, width=405, height=525)
         self.bg.create_image(204, 264, image=self.BG_IMG)
+        self.mark_id = self.bg.create_image(269, 515, image=self.MARKDOWN_IMG, tags='markdown')
         self.title = tk.Entry(self, font=self.title_font, width=25, foreground='gray', relief='ridge', bd=2)
         self.tags = [' Bug', ' Aiuto', ' Domanda', ' Suggerimento']
         self.container = tk.Frame(self, width=120, height=27, relief='ridge', bd=1)
@@ -73,6 +78,9 @@ class IssueGui(tk.Toplevel):
         self.back_lab.bind('<Button-1>', lambda _: self.close())
         self.back_lab.bind("<Enter>", lambda _: self.back_lab.config(image=self.BACKBUT_IMG_HOV))
         self.back_lab.bind("<Leave>", lambda _: self.back_lab.config(image=self.BACKBUT_IMG))
+        self.bg.tag_bind('markdown', '<Button-1>', self.markdown_guide)
+        self.bg.tag_bind('markdown', '<Enter>', lambda _: self.switch_markdown('hovered'))
+        self.bg.tag_bind('markdown', '<Leave>', lambda _: self.switch_markdown('normal'))
 
         self.option_add("*TCombobox*Listbox*Font", self.labels_font)
         self.labels.bind('<<ComboboxSelected>>', lambda _: self.focus())
@@ -85,12 +93,12 @@ class IssueGui(tk.Toplevel):
         # placing
 
         self.bg.place(x=-2, y=-2)
-        self.title.place(x=20, y=85)
-        self.container.place(x=262, y=85)
+        self.title.place(x=20, y=135)
+        self.container.place(x=262, y=135)
         self.labels.pack()
-        self.text.place(x=20, y=124)
-        self.attach_but.place(x=20, y=381)
-        self.remove_attach_but.place(x=300, y=381)
+        self.text.place(x=20, y=174)
+        self.attach_but.place(x=20, y=431)
+        self.remove_attach_but.place(x=300, y=431)
         self.back_lab.place(x=6, y=480)
 
         self.mainloop()
@@ -178,10 +186,22 @@ class IssueGui(tk.Toplevel):
 
         self.attach_tip.__setattr__('msg', f'{len(self.attachments)} allegati: {str(self.attachments)}')
 
-    def remove_attachments(self):
+    def remove_attachments(self) -> None:
 
         self.attachments.clear()
         self.attach_tip.__setattr__('msg', self.default_attach_text)
+
+    def switch_markdown(self, mode: Literal['normal', 'hovered']) -> None:
+
+        if mode == 'normal':
+            self.bg.itemconfig(self.mark_id, image=self.MARKDOWN_IMG)
+        elif mode == 'hovered':
+            self.bg.itemconfig(self.mark_id, image=self.MARKDOWN_IMG_HOV)
+
+    @staticmethod
+    def markdown_guide(*args) -> None:
+        web.Browser(
+            'https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax').search()
 
     def close(self) -> None:
         self.destroy()
