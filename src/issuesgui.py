@@ -35,6 +35,8 @@ class IssueGui(
         self.BG_IMG = tk.PhotoImage(file='res/issuegui_background.png', master=self)
         self.BACKBUT_IMG = tk.PhotoImage(file='res/backbut.png', master=self)
         self.BACKBUT_IMG_HOV = tk.PhotoImage(file='res/backbut_hovered.png', master=self)
+        self.SEND_IMG = tk.PhotoImage(file='res/send_issue_but.png', master=self)
+        self.SEND_IMG_HOV = tk.PhotoImage(file='res/send_issue_but_hovered.png', master=self)
         self.MARKDOWN_IMG = tk.PhotoImage(file='res/markdown.png', master=self)
         self.MARKDOWN_IMG_HOV = tk.PhotoImage(file='res/markdown_hovered.png', master=self)
 
@@ -54,10 +56,11 @@ class IssueGui(
         self.container = tk.Frame(self, width=120, height=27, relief='ridge', bd=1)
         self.labels = tk.ttk.Combobox(self.container, width=12, state='readonly', takefocus=0, font=self.labels_font,
                                       foreground='gray', values=self.tags)
-        self.text = tk.Text(self, width=50, height=13, font=self.text_font, foreground='gray', wrap='word', padx=5,
+        self.text = tk.Text(self, width=50, height=12, font=self.text_font, foreground='gray', wrap='word', padx=5,
                             pady=5, relief='ridge', bd=2)
         self.attach_but = tk.Button(self, width=35, height=1, command=self.get_attachments)
         self.remove_attach_but = tk.Button(self, width=5, height=1, command=self.remove_attachments)
+        self.send_but = tk.Button(self, image=self.SEND_IMG, bd=0, bg='#1414b3', command=self.send_issue)
         self.back_lab = tk.Label(self, image=self.BACKBUT_IMG, bg='#f0f67c')
 
         # configuration and bindings
@@ -78,6 +81,8 @@ class IssueGui(
         self.back_lab.bind('<Button-1>', lambda _: self.close())
         self.back_lab.bind("<Enter>", lambda _: self.back_lab.config(image=self.BACKBUT_IMG_HOV))
         self.back_lab.bind("<Leave>", lambda _: self.back_lab.config(image=self.BACKBUT_IMG))
+        self.send_but.bind("<Enter>", lambda _: self.send_but.config(image=self.SEND_IMG_HOV))
+        self.send_but.bind("<Leave>", lambda _: self.send_but.config(image=self.SEND_IMG))
         self.bg.tag_bind('markdown', '<Button-1>', self.markdown_guide)
         self.bg.tag_bind('markdown', '<Enter>', lambda _: self.switch_markdown('hovered'))
         self.bg.tag_bind('markdown', '<Leave>', lambda _: self.switch_markdown('normal'))
@@ -93,15 +98,21 @@ class IssueGui(
         # placing
 
         self.bg.place(x=-2, y=-2)
-        self.title.place(x=20, y=135)
-        self.container.place(x=262, y=135)
+        self.title.place(x=20, y=122)
+        self.container.place(x=262, y=122)
         self.labels.pack()
-        self.text.place(x=20, y=174)
-        self.attach_but.place(x=20, y=431)
-        self.remove_attach_but.place(x=300, y=431)
+        self.text.place(x=20, y=158)
+        self.attach_but.place(x=20, y=398)
+        self.remove_attach_but.place(x=300, y=398)
+        self.send_but.place(x=135, y=445)
         self.back_lab.place(x=6, y=480)
 
         self.mainloop()
+
+    # functions
+
+    def send_issue(self) -> None:
+        pass
 
     def empty_widget(self, widget: Literal['title', 'text'], char: tk.Event) -> None:
         key = char.__getattribute__('char')
