@@ -126,7 +126,7 @@ class MainGui:
                             self.encrypt_count).update('TotalEncryptions')
 
             if all(has_been_encrypted):
-                alt.encrypted_successfully_alert(len(path))
+                alt.encrypted_successfully_alert(self.win, len(path))
             return
 
         if task == 'decrypt':
@@ -143,12 +143,12 @@ class MainGui:
                             self.decrypt_count).update('TotalDecryptions')
 
             if all(has_been_decrypted):
-                alt.decrypted_successfully_alert(len(path))
+                alt.decrypted_successfully_alert(self.win, len(path))
             return
 
         if task == 'share':
 
-            fixed_path = [i for i in path if not Share.is_already_shared(i)]
+            fixed_path = [i for i in path if not Share(self.win).is_already_shared(i)]
             if len(fixed_path) == 0:
                 return
 
@@ -156,19 +156,19 @@ class MainGui:
             if username is None:
                 return
 
-            has_been_shared = [rsa.share(i, username) for i in fixed_path]
+            has_been_shared = [rsa.share(self.win, i, username) for i in fixed_path]
 
             for i in has_been_shared:
                 if i:
                     Counter(self.win, self.bg.itemcget(self.share_count, 'text'), self.share_count).update('TotalShares')
 
             if all(has_been_shared):
-                alt.shared_successfully_alert(len(fixed_path))
+                alt.shared_successfully_alert(self.win, len(fixed_path))
             return
 
         if task == 'translate':
 
-            has_been_translated = [rsa.translate(i) for i in path]
+            has_been_translated = [rsa.translate(self.win, i) for i in path]
 
             for i in has_been_translated:
                 if i:
@@ -176,7 +176,7 @@ class MainGui:
                             self.translate_count).update('TotalTranslations')
 
             if all(has_been_translated):
-                alt.translated_successfully_alert(len(path))
+                alt.translated_successfully_alert(self.win, len(path))
             return
 
     def correct_closing(self):

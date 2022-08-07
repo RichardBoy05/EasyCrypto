@@ -26,7 +26,7 @@ def setup():
     log = local_setup()
 
     log.info('Asking username...')
-    username = set_username()
+    win, username = set_username()
     log.info(f'Username successfully set: {username}')
 
     if username is None:
@@ -34,7 +34,7 @@ def setup():
 
     configuration(username, log)
     generate_keys(log)
-    upload_public_key(username, log)
+    upload_public_key(win, username, log)
 
 
 def local_setup():
@@ -120,12 +120,12 @@ def generate_keys(log):
     log.info('Public key successfully generated!')
 
 
-def upload_public_key(username, log):
+def upload_public_key(win, username, log):
     log.info('Connecting to the server...')
 
     public_key_file = CRYPT_PATH + '\\public_key.pem'
 
-    if not Fb().upload('Users/' + username + '.pem', public_key_file):
+    if not Fb(win).upload('Users/' + username + '.pem', public_key_file):
         log.critical('Public key could not be uploaded to the server...')
         shutdown(log)
 

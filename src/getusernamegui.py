@@ -35,7 +35,7 @@ def get_username(main_win):
 
     # functions
 
-    storage = Username.get_users_list()
+    storage = Username(win).get_users_list()
 
     if storage is None:
         win.destroy()
@@ -48,7 +48,7 @@ def get_username(main_win):
     canva_id = background_canv.create_text(30, 158, text='Nickname troppo corto!', fill='red', anchor='w')
     username_entry = tk.Entry(win, width=19, font=def_font, relief='ridge', bd=2, textvariable=data)
     go_but = tk.Button(win, image=GO_IMAGE, borderwidth=0, bg='#160ca3',
-                       command=lambda: Username.execute(win, data, False, background_canv, canva_id))
+                       command=lambda: Username(win).execute(win, data, False, background_canv, canva_id))
 
     # configuration and bindings
 
@@ -70,12 +70,12 @@ def get_username(main_win):
         os.remove(USERS_LIST)
 
     try:
-        return Username.username
+        return Username(win).username
     except AttributeError:
         log.warning("AttributeError", exc_info=True)
         return None
 
 
 def correct_closing(win):
-    Username.username = None
+    Username(win).username = None
     win.destroy()

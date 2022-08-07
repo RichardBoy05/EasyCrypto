@@ -7,7 +7,8 @@ from alerts import connection_error_alert
 
 class Firebase:
 
-    def __init__(self):
+    def __init__(self, win):
+        self.win = win
         self.log = Logger(__name__).default()
 
         try:
@@ -15,7 +16,7 @@ class Firebase:
             storage = firebase.storage()
             self.storage = storage
         except Exception as e:
-            connection_error_alert(e)
+            connection_error_alert(self.win, e)
             self.log.error("Exception", exc_info=True)
             self.storage = None
 
@@ -35,7 +36,7 @@ class Firebase:
             self.get_storage().child(location).put(local_location)
             return True
         except Exception as e:
-            connection_error_alert(e)
+            connection_error_alert(self.win, e)
             self.log.error("Exception", exc_info=True)
             return False
 
@@ -48,7 +49,7 @@ class Firebase:
             return True
 
         except Exception as e:
-            connection_error_alert(e)
+            connection_error_alert(self.win, e)
             self.log.error("Exception", exc_info=True)
             return False
 
@@ -60,6 +61,6 @@ class Firebase:
             self.get_storage().delete(location, None)
             return True
         except Exception as e:
-            connection_error_alert(e)
+            connection_error_alert(self.win, e)
             self.log.error("Exception", exc_info=True)
             return False

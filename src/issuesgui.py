@@ -1,5 +1,7 @@
 import tkinter.ttk
 import tkinter as tk
+import alerts as alt
+from issues import Issue
 from typing import Literal
 import tkinter.font as tkfont
 from tktooltip import ToolTip
@@ -36,9 +38,9 @@ class IssueGui(tk.Toplevel):  # come evento aggiungi che copia link github negli
         self.SEND_IMG = tk.PhotoImage(file='res/send_issue_but.png', master=self)
         self.SEND_IMG_HOV = tk.PhotoImage(file='res/send_issue_but_hovered.png', master=self)
         self.ATTACH_IMG = tk.PhotoImage(file='res/attach_but.png', master=self)
-        self.ATTACH_IMG_HOV = tk.PhotoImage(file='res/attach_but.png', master=self)
+        self.ATTACH_IMG_HOV = tk.PhotoImage(file='res/attach_but_hovered.png', master=self)
         self.REM_ATTACH_IMG = tk.PhotoImage(file='res/remove_attach_but.png', master=self)
-        self.REM_ATTACH_IMG_HOV = tk.PhotoImage(file='res/remove_attach_but.png', master=self)
+        self.REM_ATTACH_IMG_HOV = tk.PhotoImage(file='res/remove_attach_but_hovered.png', master=self)
 
         # fonts
 
@@ -46,29 +48,33 @@ class IssueGui(tk.Toplevel):  # come evento aggiungi che copia link github negli
         self.labels_font = tkfont.Font(family='Calibri', size=12)
         self.text_font = tkfont.Font(family='Calibri', size=11)
 
+        # text variables
+
+        self.labels_var = tk.StringVar()
+
         # widgets
 
         self.bg = tk.Canvas(self, width=405, height=525)
         self.bg.create_image(204, 264, image=self.BG_IMG)
+        self.back_id = self.bg.create_image(26, 503, image=self.BACKBUT_IMG, tags='backbut')
+        self.rem_attach_id = self.bg.create_image(382, 503, image=self.REM_ATTACH_IMG, tags='rem_attach')
         self.title = tk.Entry(self, font=self.title_font, width=25, foreground='gray', relief='ridge', bd=2)
         self.tags = [' Bug', ' Aiuto', ' Domanda', ' Suggerimento']
         self.container = tk.Frame(self, width=120, height=27, relief='ridge', bd=1)
         self.labels = tk.ttk.Combobox(self.container, width=12, state='readonly', takefocus=0, font=self.labels_font,
-                                      foreground='gray', values=self.tags)
+                                      foreground='gray', values=self.tags, textvariable=self.labels_var)
         self.text = tk.Text(self, width=50, height=11, font=self.text_font, foreground='gray', wrap='word', padx=5,
                             pady=5, relief='ridge', bd=2)
         self.attach_but = tk.Button(self, image=self.ATTACH_IMG, bd=0, bg='#8c8c8c', command=self.get_attachments)
-        self.remove_attach_but = tk.Button(self, image=self.REM_ATTACH_IMG, bd=0, bg='#d6ef8a', command=self.del_attach)
         self.send_but = tk.Button(self, image=self.SEND_IMG, bd=0, bg='#1414b3', command=self.send_issue)
-        self.back_lab = tk.Label(self, image=self.BACKBUT_IMG, bg='#f0f67c')
 
         # configuration and bindings
 
         self.title_default = ' Titolo'
-        self.box_default = ' Tipo'
+        self.labels_default = ' Tipo'
         self.text_default = 'Inserisci una descrizione generale del problema...'
         self.title.insert(0, self.title_default)
-        self.labels.set(self.box_default)
+        self.labels.set(self.labels_default)
         self.text.insert(1.0, self.text_default)
 
         self.title.bind('<KeyRelease>', lambda char: self.empty_widget('title', char))
@@ -77,15 +83,16 @@ class IssueGui(tk.Toplevel):  # come evento aggiungi che copia link github negli
         self.text.bind("<FocusOut>", lambda _: self.handle_unfocused_widget('text'))
         self.title.bind("<Control-BackSpace>", lambda _: self.ctrldel_delete('title'))
         self.text.bind("<Control-BackSpace>", lambda _: self.ctrldel_delete('text'))
-        self.back_lab.bind('<Button-1>', lambda _: self.close())
-        self.back_lab.bind("<Enter>", lambda _: self.back_lab.config(image=self.BACKBUT_IMG_HOV))
-        self.back_lab.bind("<Leave>", lambda _: self.back_lab.config(image=self.BACKBUT_IMG))
         self.send_but.bind("<Enter>", lambda _: self.send_but.config(image=self.SEND_IMG_HOV))
         self.send_but.bind("<Leave>", lambda _: self.send_but.config(image=self.SEND_IMG))
         self.attach_but.bind("<Enter>", lambda _: self.attach_but.config(image=self.ATTACH_IMG_HOV))
         self.attach_but.bind("<Leave>", lambda _: self.attach_but.config(image=self.ATTACH_IMG))
-        self.remove_attach_but.bind("<Enter>", lambda _: self.remove_attach_but.config(image=self.REM_ATTACH_IMG_HOV))
-        self.remove_attach_but.bind("<Leave>", lambda _: self.remove_attach_but.config(image=self.REM_ATTACH_IMG))
+        self.bg.tag_bind('backbut', '<Button-1>', self.close)
+        self.bg.tag_bind('rem_attach', '<Button-1>', self.rem_attach)
+        self.bg.tag_bind('backbut', "<Enter>", lambda _: self.bg.itemconfig(self.back_id, image=self.BACKBUT_IMG_HOV))
+        self.bg.tag_bind('backbut', "<Leave>", lambda _: self.bg.itemconfig(self.back_id, image=self.BACKBUT_IMG))
+        self.bg.tag_bind('rem_attach', "<Enter>", lambda _: self.bg.itemconfig('rem_attach', image=self.REM_ATTACH_IMG_HOV))
+        self.bg.tag_bind('rem_attach', "<Leave>", lambda _: self.bg.itemconfig('rem_attach', image=self.REM_ATTACH_IMG))
 
         self.option_add("*TCombobox*Listbox*Font", self.labels_font)
         self.labels.bind('<<ComboboxSelected>>', lambda _: self.focus())
@@ -94,6 +101,7 @@ class IssueGui(tk.Toplevel):  # come evento aggiungi che copia link github negli
 
         self.default_attach_text = 'Nessuno allegato selezionato!'
         self.attach_tip = ToolTip(self.attach_but, msg=self.default_attach_text, delay=0.5)
+        ToolTip(self.bg, msg='Rimuovi gli allegati', delay=0.5, canva_tag='rem_attach')
 
         # placing
 
@@ -103,16 +111,35 @@ class IssueGui(tk.Toplevel):  # come evento aggiungi che copia link github negli
         self.labels.pack()
         self.text.place(x=20, y=163)
         self.attach_but.place(x=20, y=390)
-        self.remove_attach_but.place(x=350, y=480)
-        self.send_but.place(x=100, y=450)
-        self.back_lab.place(x=6, y=480)
+        self.send_but.place(x=109, y=450)
 
         self.mainloop()
 
     # functions
 
     def send_issue(self) -> None:
-        pass
+
+        title = self.title.get()
+        if title == '' or self.title.cget('foreground') == 'gray':
+            alt.missing_title_alert(self)
+            return
+
+        body = self.text.get(1.0, tk.END).strip('\n')
+        if body == '' or self.text.cget('foreground') == 'gray':
+            alt.missing_text_alert(self)
+            return
+
+        labels = [self.tags_converter(self.labels_var.get()), 'easycrypto']
+        if labels[0] == self.labels_default:
+            alt.missing_labels_alert(self)
+            return
+
+        if len(self.attachments) == 0:
+            if not alt.missing_attachments(self):
+                return
+
+        Issue(self, title, body, labels, self.attachments).create_issue()
+        self.close()
 
     def empty_widget(self, widget: Literal['title', 'text'], char: tk.Event) -> None:
         key = char.__getattribute__('char')
@@ -191,17 +218,37 @@ class IssueGui(tk.Toplevel):  # come evento aggiungi che copia link github negli
 
     def get_attachments(self) -> None:
         path = filedialog.askopenfilenames(title='Seleziona uno o più allegati...', filetypes=self.explorer_files)
+
+        if len(path) == 0:
+            self.attach_tip.__setattr__('msg', self.default_attach_text)
+            return
+
         for i in path:
             if i not in self.attachments:
                 self.attachments.append(i)
 
         self.attach_tip.__setattr__('msg', f'{len(self.attachments)} allegati: {str(self.attachments)}')
 
-    def del_attach(self) -> None:
+    def rem_attach(self, _) -> None:
 
         self.attachments.clear()
         self.attach_tip.__setattr__('msg', self.default_attach_text)
 
-    def close(self) -> None:
+    def close(self, *args) -> None:
         self.destroy()
         self.win.deiconify()
+
+    @staticmethod
+    def tags_converter(tag: str) -> str | None:
+        match tag:
+            case ' Bug':
+                return 'bug'
+            case ' Aiuto':
+                return 'help'
+            case ' Domanda':
+                return 'question'
+            case ' Suggerimento':
+                return 'suggestion'
+            case _:
+                return None
+

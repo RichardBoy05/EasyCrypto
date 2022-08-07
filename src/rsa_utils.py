@@ -1,7 +1,7 @@
 import os
 import json
-import alerts
 import string
+import alerts as alt
 import random as rand
 from safedata import Safe
 from stat import S_IWRITE
@@ -19,6 +19,9 @@ from cryptography.hazmat.primitives import hashes, serialization
 
 class RsaUtils:
 
+    def __init__(self, win):
+        self.win = win
+
     @staticmethod
     def pop_invalid_characters(name):
         valid_characters = list(string.ascii_letters + string.digits + '-_.() ')
@@ -28,8 +31,10 @@ class RsaUtils:
 
 class Share(RsaUtils):
 
-    @staticmethod
-    def is_already_shared(path):
+    def __init__(self, win):
+        super().__init__(win)
+
+    def is_already_shared(self, path):
         log = Logger(__name__).default()
 
         with open(path, 'rb') as file:
@@ -44,13 +49,12 @@ class Share(RsaUtils):
                 return False
 
         if '----[METADATA]--->' in content:
-            alerts.already_shared_alert(path[path.rfind('/') + 1::])
+            alt.already_shared_alert(self.win, path[path.rfind('/') + 1::])
             return True
         return False
 
-    @staticmethod
-    def check_duped_filenames(location):
-        if not Fb().download(location, CRYPT_PATH, 'temp.txt'):
+    def check_duped_filenames(self, location):
+        if not Fb(self.win).download(location, CRYPT_PATH, 'temp.txt'):
             return None
 
         if os.path.exists(os.path.join(CRYPT_PATH, 'temp.txt')):
@@ -59,10 +63,9 @@ class Share(RsaUtils):
 
         return False
 
-    @staticmethod
-    def get_public_key(username):
+    def get_public_key(self, username):
         key_path = os.path.join(CRYPT_PATH, f'{username}_publickey.pem')
-        if not Fb().download(f'Users/{username}.pem', CRYPT_PATH, f'{username}_publickey.pem'):
+        if not Fb(self.win).download(f'Users/{username}.pem', CRYPT_PATH, f'{username}_publickey.pem'):
             return None
 
         with open(key_path, "rb") as key_file:
@@ -75,8 +78,7 @@ class Share(RsaUtils):
 
         return public_key
 
-    @staticmethod
-    def encrypt_file(path):
+    def encrypt_file(self, path):
         log = Logger(__name__).default()
 
         key = Fernet.generate_key()
@@ -88,7 +90,7 @@ class Share(RsaUtils):
         try:
             encrypted_content = encrypter.encrypt(original_content)
         except Exception as e:
-            alerts.general_exception_alert(e)
+            alt.general_exception_alert(self.win, e)
             log.error("Exception", exc_info=True)
             return None
 
@@ -96,11 +98,11 @@ class Share(RsaUtils):
             with open(path, 'wb') as file:
                 file.write(encrypted_content)
         except PermissionError as e:
-            alerts.permission_error_alert(e)
+            alt.permission_error_alert(self.win, e)
             log.warning("PermissionError", exc_info=True)
             return None
         except Exception as e:
-            alerts.general_exception_alert(e)
+            alt.general_exception_alert(self.win, e)
             log.error("Exception", exc_info=True)
             return None
 
@@ -133,14 +135,13 @@ class Share(RsaUtils):
         )
         return encrypted_key
 
-    @staticmethod
-    def publish_encrypted_key(key, storage_location):
+    def publish_encrypted_key(self, key, storage_location):
         filepath = os.path.join(CRYPT_PATH, 'tempkey.key')
 
         with open(filepath, 'wb') as file:
             file.write(key)
 
-        if not Fb().upload(storage_location, filepath):
+        if not Fb(self.win).upload(storage_location, filepath):
             os.remove(filepath)
             return None
 
@@ -150,8 +151,10 @@ class Share(RsaUtils):
 
 class Translate(RsaUtils):
 
-    @staticmethod
-    def get_metadata(path):
+    def __init__(self, win):
+        super().__init__(win)
+
+    def get_metadata(self, path):
         log = Logger(__name__).default()
 
         with open(path, 'rb') as file:
@@ -159,14 +162,14 @@ class Translate(RsaUtils):
                 content = file.read().decode('utf-8')
             except UnicodeDecodeError:
                 log.warning('UnicodeDecodeError', exc_info=True)
-                alerts.not_shared_alert()
+                alt.not_shared_alert(self.win)
                 return None
 
         try:
             metadata = content.split('----[METADATA]--->', 1)[1]
         except IndexError:
             log.warning("IndexError", exc_info=True)
-            alerts.not_shared_alert()
+            alt.not_shared_alert(self.win)
             return None
 
         dictionary = json.loads(metadata)
@@ -175,21 +178,20 @@ class Translate(RsaUtils):
             username = Safe.obfuscate_metadata(dictionary['Username'])
             filename = Safe.obfuscate_metadata(dictionary['Filename'])
         except KeyError:
-            alerts.metadata_error_alert()
+            alt.metadata_error_alert(self.win)
             log.error('KeyError', exc_info=True)
             return None
 
         return username, filename
 
-    @staticmethod
-    def get_public_token(location, name):
-        if not Fb().download(location, CRYPT_PATH, 'temp - ' + name):
+    def get_public_token(self, location, name):
+        if not Fb(self.win).download(location, CRYPT_PATH, 'temp - ' + name):
             return None
 
         encrypted_key_file = os.path.join(CRYPT_PATH, 'temp - ' + name)
 
         if not os.path.exists(encrypted_key_file):
-            alerts.not_shared_alert()
+            alt.not_shared_alert(self.win)
             return None
 
         with open(encrypted_key_file, 'rb') as file:
@@ -199,8 +201,7 @@ class Translate(RsaUtils):
 
         return encrypted_key
 
-    @staticmethod
-    def decrypt_key(encrypted_key):
+    def decrypt_key(self, encrypted_key):
         log = Logger(__name__).default()
 
         with open(CRYPT_PATH + "\\private_key.pem", "rb") as key_file:
@@ -221,13 +222,12 @@ class Translate(RsaUtils):
             )
         except ValueError:
             log.warning("ValueError", exc_info=True)
-            alerts.not_shared_alert()
+            alt.not_shared_alert(self.win)
             return None
 
         return key
 
-    @staticmethod
-    def decrypt_file(path, key):
+    def decrypt_file(self, path, key):
         log = Logger(__name__).default()
 
         os.chmod(path, S_IWRITE)
@@ -240,11 +240,11 @@ class Translate(RsaUtils):
         try:
             decrypted_content = decrypter.decrypt(encrypted_file)
         except InvalidToken:
-            alerts.not_encrypted_alert(path[path.rfind('/') + 1::])
+            alt.not_encrypted_alert(self.win, path[path.rfind('/') + 1::])
             log.warning("InvalidToken", exc_info=True)
             return None
         except Exception as e:
-            alerts.general_exception_alert(e)
+            alt.general_exception_alert(self.win, e)
             log.error("Exception", exc_info=True)
             return None
 
@@ -252,11 +252,11 @@ class Translate(RsaUtils):
             with open(path, 'wb') as file:
                 file.write(decrypted_content)
         except PermissionError as e:
-            alerts.permission_error_alert(e)
+            alt.permission_error_alert(self.win, e)
             log.warning("PermissionError", exc_info=True)
             return None
         except Exception as e:
-            alerts.general_exception_alert(e)
+            alt.general_exception_alert(self.win, e)
             log.error("Exception", exc_info=True)
             return None
 
@@ -270,6 +270,5 @@ class Translate(RsaUtils):
         os.rename(path, defname)
         return defname
 
-    @staticmethod
-    def clear_storage(location):
-        Fb().delete(location)
+    def clear_storage(self, location):
+        Fb(self.win).delete(location)

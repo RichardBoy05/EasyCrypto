@@ -37,17 +37,17 @@ def ask_password(main_win, to_encrypt, one_file):
         execute.password = None
 
         if not pass_box.get():
-            empty_box_alert("Password")
+            empty_box_alert(win, "Password")
             execute.password = None
             return
 
         if not confirmpass_box.get():
-            empty_box_alert("Conferma password")
+            empty_box_alert(win, "Conferma password")
             execute.password = None
             return
 
         if pass_box.get() != confirmpass_box.get():
-            different_passwords_alert()
+            different_passwords_alert(win)
             execute.password = None
             return
 

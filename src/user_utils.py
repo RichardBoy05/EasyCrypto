@@ -11,25 +11,25 @@ USERS_LIST = os.path.join(PATH, 'users_list.txt')
 
 class Username:
 
-    username = None
+    def __init__(self, win):
+        self.win = win
+        self.username = None
 
-    @staticmethod
-    def get_users_list():
-        if not Fb().download('users_list.txt', PATH, USERS_LIST):
+    def get_users_list(self):
+        if not Fb(self.win).download('users_list.txt', PATH, USERS_LIST):
             return None
-        return Fb().get_storage()
+        return Fb(self.win).get_storage()
 
-    @classmethod
-    def execute(cls, win, entry_var, to_set, background_canva, canva_id):
+    def execute(self, win, entry_var, to_set, background_canva, canva_id):
 
         if background_canva.itemcget(canva_id, 'text') != 'Nickname valido!':
             sound.PlaySound('SystemHand', sound.SND_ASYNC)
             return
 
-        cls.username = entry_var.get()
+        self.username = entry_var.get()
 
         if os.path.exists(os.path.join(CRYPT_PATH, 'firstboot')):
-            cls.username = None
+            self.username = None
 
         if to_set:
             filepath = USERS_LIST
@@ -39,10 +39,10 @@ class Username:
                 if len(file.read(1)) > 0:
                     file.write('\n')
                 file.seek(0, 2)
-                file.write(cls.username)
+                file.write(self.username)
 
-            if not Fb().upload('users_list.txt', filepath):
-                cls.username = None
+            if not Fb(self.win).upload('users_list.txt', filepath):
+                self.username = None
 
         win.destroy()
 

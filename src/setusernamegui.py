@@ -34,7 +34,7 @@ def set_username():
 
     # functions
 
-    storage = Username.get_users_list()
+    storage = Username(win).get_users_list()
 
     if storage is None:
         return None
@@ -53,7 +53,7 @@ def set_username():
     canva_id = background_canv.create_text(30, 202, text='Nickname troppo corto!', fill='red', anchor='w')
     user_entry = tk.Entry(win, width=19, font=def_font, relief='groove', textvariable=content)
     go_but = tk.Button(win, image=GO_IMAGE, borderwidth=0, bg='#160ca3',
-                       command=lambda: Username.execute(win, content, True, background_canv, canva_id))
+                       command=lambda: Username(win).execute(win, content, True, background_canv, canva_id))
     # configuration and bindings
 
     background_canv.bind('<Button-1>', lambda _: readme_redirect())
@@ -77,8 +77,7 @@ def set_username():
         log.warning("PermissionError", exc_info=True)
 
     try:
-        return Username.username
+        return win, Username(win).username
     except AttributeError:
         log.warning("AttributeError", exc_info=True)
         return None
-

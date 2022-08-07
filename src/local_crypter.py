@@ -1,16 +1,15 @@
 import os
 import base64
+import alerts as alt
+from logger import Logger
 from key_crypter import KeyCrypter
 from storing import File, JsonFile
+from stat import S_IREAD, S_IWRITE
 from cryptography.fernet import Fernet
 from cryptography.fernet import InvalidToken
+from cryptography.exceptions import InvalidKey
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.exceptions import InvalidKey
-from stat import S_IREAD, S_IWRITE
-from logger import Logger
-from alerts import already_encrypted_alert, not_encrypted_alert, permission_error_alert, general_exception_alert, \
-    invalid_password
 
 
 PATH = os.path.join(os.getenv('APPDATA'), 'EasyCrypto')
@@ -26,7 +25,7 @@ def encrypt(win, path, password, keep_copy):
 
     is_already_encrypted = JsonFile(STORAGE).parse_json(original_file.decode('ISO-8859-1'), True)
     if is_already_encrypted:
-        already_encrypted_alert(path[path.rfind('/') + 1::])
+        alt.already_encrypted_alert(win, path[path.rfind('/') + 1::])
         return False
 
     salt = os.urandom(16)
@@ -45,7 +44,7 @@ def encrypt(win, path, password, keep_copy):
     try:
         encrypted_content = encrypter.encrypt(original_file)
     except Exception as e:
-        general_exception_alert(e)
+        alt.general_exception_alert(win, e)
         log.error("Exception", exc_info=True)
         return False
 
@@ -55,11 +54,11 @@ def encrypt(win, path, password, keep_copy):
         with open(path, 'wb') as file:
             file.write(encrypted_content)
     except PermissionError as e:
-        permission_error_alert(e)
+        alt.permission_error_alert(win, e)
         log.warning("PermissionError", exc_info=True)
         return False
     except Exception as e:
-        general_exception_alert(e)
+        alt.general_exception_alert(win, e)
         log.error("Exception", exc_info=True)
         return False
 
@@ -87,7 +86,7 @@ def decrypt(win, path, password, keep_copy):
     pair = JsonFile(STORAGE).parse_json(file_content, False)
 
     if pair is None:
-        not_encrypted_alert(path[path.rfind('/') + 1::])
+        alt.not_encrypted_alert(win, path[path.rfind('/') + 1::])
         return False
 
     salt = pair[0][0].encode('ISO-8859-1')
@@ -103,7 +102,7 @@ def decrypt(win, path, password, keep_copy):
     try:
         kdf.verify(password, base64.urlsafe_b64decode(key))
     except InvalidKey:
-        invalid_password(path[path.rfind('/') + 1:path.rfind('.'):])
+        alt.invalid_password(win, path[path.rfind('/') + 1:path.rfind('.'):])
         log.warning("InvalidKey", exc_info=True)
         File(STORAGE).lock_file()
         return False
@@ -118,11 +117,11 @@ def decrypt(win, path, password, keep_copy):
     try:
         decrypted_content = decrypter.decrypt(original_file)
     except InvalidToken:
-        not_encrypted_alert(path[path.rfind('/') + 1::])
+        alt.not_encrypted_alert(win, path[path.rfind('/') + 1::])
         log.warning("InvalidToken", exc_info=True)
         return False
     except Exception as e:
-        general_exception_alert(e)
+        alt.general_exception_alert(win, e)
         log.error("Exception", exc_info=True)
         return False
 
@@ -130,11 +129,11 @@ def decrypt(win, path, password, keep_copy):
         with open(path, 'wb') as file:
             file.write(decrypted_content)
     except PermissionError as e:
-        permission_error_alert(e)
+        alt.permission_error_alert(win, e)
         log.warning("PermissionError", exc_info=True)
         return False
     except Exception as e:
-        general_exception_alert(e)
+        alt.general_exception_alert(win, e)
         log.error("Exception", exc_info=True)
         return False
 

@@ -1,6 +1,8 @@
 import json
+import time
 import requests
 import alerts as alt
+import tkinter as tk
 from github import Github
 from logger import Logger
 from datetime import datetime
@@ -10,7 +12,8 @@ from safedata import Safe as Sd
 class Issue:
     """ Defines the structure for objects that represent a GitHub Issue """
 
-    def __init__(self, title: str, body: str, labels: list[str], attachments: list[str]):
+    def __init__(self, win: tk.Toplevel, title: str, body: str, labels: list[str], attachments: list[str]):
+        self.win = win
         self.OWNER = 'RichardBoy05'
         self.REPO = 'EasyCrypto'
         self.TOKEN = Sd.get_token()
@@ -48,15 +51,15 @@ class Issue:
         try:
             response = requests.request('POST', self.url, data=content, headers=self.headers)
         except requests.exceptions.ConnectionError as e:
-            alt.issue_connection_error_alert(e)
+            alt.issue_connection_error_alert(self.win, e)
             self.log.warning('requests.exceptions.ConnectionError', exc_info=True)
             return
 
         if response.status_code == 202:
-            alt.issue_reported_alert()
+            alt.issue_reported_alert(self.win)
             self.log.info(f'Issue "{self.title}" successfully generated!{self.log_footer}')
         else:
-            alt.issue_error_alert(response)
+            alt.issue_error_alert(self.win, response)
             self.log.error(f'An error has occured while trying to report an issue.\n{response}{self.log_footer}')
 
     def __link_attachment(self) -> str:
@@ -92,7 +95,7 @@ class Issue:
             data = file.read()
 
         if data == b'':
-            alt.empty_issue_attachment_alert(attachment[attachment.rfind('/') + 1::])
+            alt.empty_issue_attachment_alert(self.win, attachment[attachment.rfind('/') + 1::])
             self.log.warning(f'Attempt to attach an empty file to an issue!{self.log_footer}')
             return False
 
@@ -103,4 +106,5 @@ class Issue:
             self.log.warning('requests.exceptions.ConnectionError', exc_info=True)
             return False
 
+        time.sleep(1)
         return True
