@@ -9,75 +9,95 @@ CRYPT_PATH = os.path.join(PATH, 'crypt')
 USERS_LIST = os.path.join(PATH, 'users_list.txt')
 
 
-def set_username():
-    log = Logger(__name__).default()
+class SetUsernameGui(tk.Tk):
 
-    win = tk.Tk()
-    WIDTH = 475
-    HEIGHT = 325
+    def __init__(self):
+        super().__init__()
+        self.username = None
+        self.username_obj = Username(self)
 
-    WINDOW_ICON = tk.PhotoImage(file='res/logo.png', master=win)
-    BACKGROUND_IMAGE = tk.PhotoImage(file='res/set_username_background.png', master=win)
-    GO_IMAGE = tk.PhotoImage(file='res/set_username_but.png', master=win)
-    GO_IMAGE_HOVERED = tk.PhotoImage(file='res/set_username_but_hovered.png', master=win)
+        # settings
 
-    x = int(win.winfo_screenwidth() / 2 - (WIDTH / 2))
-    y = int(win.winfo_screenheight() / 2 - (HEIGHT / 2))
+        self.WIDTH = 475
+        self.HEIGHT = 325
+        self.x = int(self.winfo_screenwidth() / 2 - (self.WIDTH / 2))
+        self.y = int(self.winfo_screenheight() / 2 - (self.HEIGHT / 2))
 
-    win.title('EasyCrypto')
-    win.geometry(str(WIDTH) + 'x' + str(HEIGHT) + '+' + str(x) + '+' + str(y))
-    win.resizable(False, False)
-    win.iconphoto(True, WINDOW_ICON)
+        self.title('EasyCrypto')
+        self.geometry('{}x{}+{}+{}'.format(self.WIDTH, self.HEIGHT, self.x, self.y))
+        self.resizable(False, False)
+        self.icon = tk.PhotoImage(file='res/logo.png', master=self)
+        self.iconphoto(True, self.icon)
+        self.log = Logger(__name__).default()
 
-    def_font = ('Arial Baltic', 14)
-    content = tk.StringVar()
+        # images
 
-    # functions
+        self.BACKGROUND_IMAGE = tk.PhotoImage(file='res/set_username_background.png', master=self)
+        self.GO_IMAGE = tk.PhotoImage(file='res/set_username_but.png', master=self)
+        self.GO_IMAGE_HOVERED = tk.PhotoImage(file='res/set_username_but_hovered.png', master=self)
 
-    storage = Username(win).get_users_list()
+        # fonts
 
-    if storage is None:
-        return None
+        self.def_font = ('Arial Baltic', 14)
 
-    def readme_redirect():
-        x_coord = win.winfo_pointerx() - win.winfo_rootx()
-        y_coord = win.winfo_pointery() - win.winfo_rooty()
+        # check connection
 
-        if 164 < x_coord < 282 and 301 < y_coord < 318:
+        self.storage = self.username_obj.get_users_list()
+
+        if self.storage is None:
+            self.username = None
+            return
+
+        # widgets
+
+        self.bg = tk.Canvas(self, width=475, height=325)
+        self.bg.create_image(239, 164, image=self.BACKGROUND_IMAGE)
+        self.canva_id = self.bg.create_text(30, 202, text='Nickname troppo corto!', fill='red', anchor='w')
+        self.content = tk.StringVar()
+        self.user_entry = tk.Entry(self, width=19, font=self.def_font, relief='groove', textvariable=self.content)
+        self.go_but = tk.Button(self, image=self.GO_IMAGE, borderwidth=0, bg='#160ca3',
+                                command=lambda: self.username_obj.execute(self, self.content, True, self.bg,
+                                                                          self.canva_id))
+        # configuration and bindings
+
+        self.bg.bind('<Button-1>', lambda _: self.__readme_redirect())
+        self.go_but.bind("<Enter>", lambda _: self.go_but.config(image=self.GO_IMAGE_HOVERED))
+        self.go_but.bind("<Leave>", lambda _: self.go_but.config(image=self.GO_IMAGE))
+
+        self.content.trace_add('write', lambda _, __, ___: Username.check_username(self.content.get(), True, self.bg,
+                                                                                   self.canva_id))
+        self.user_entry.focus()
+
+        # placing
+
+        self.bg.place(x=-2, y=-2)
+        self.user_entry.place(x=29, y=163)
+        self.go_but.place(x=67, y=228)
+
+        # button event
+
+        self.go_but.wait_window(self)
+
+        try:
+            if os.path.exists(USERS_LIST):
+                os.remove(USERS_LIST)
+        except PermissionError:
+            self.log.warning("PermissionError", exc_info=True)
+
+        try:
+            self.username = self, self.username_obj.username
+        except AttributeError:
+            self.log.warning("AttributeError", exc_info=True)
+            self.username = None
+
+    def __readme_redirect(self) -> None:
+        """Redirects the user to the EasyCrypto GitHub readme"""
+        x_coord = self.winfo_pointerx() - self.winfo_rootx()
+        y_coord = self.winfo_pointery() - self.winfo_rooty()
+
+        if 352 < x_coord < 465 and 301 < y_coord < 318:
             web.Browser('https://github.com/RichardBoy05/EasyCrypto/blob/main/README.md').search()
 
-    # widgets
-
-    background_canv = tk.Canvas(win, width=475, height=325)
-    background_canv.create_image(239, 164, image=BACKGROUND_IMAGE)
-    canva_id = background_canv.create_text(30, 202, text='Nickname troppo corto!', fill='red', anchor='w')
-    user_entry = tk.Entry(win, width=19, font=def_font, relief='groove', textvariable=content)
-    go_but = tk.Button(win, image=GO_IMAGE, borderwidth=0, bg='#160ca3',
-                       command=lambda: Username(win).execute(win, content, True, background_canv, canva_id))
-    # configuration and bindings
-
-    background_canv.bind('<Button-1>', lambda _: readme_redirect())
-    go_but.bind("<Enter>", lambda _: go_but.config(image=GO_IMAGE_HOVERED))
-    go_but.bind("<Leave>", lambda _: go_but.config(image=GO_IMAGE))
-    content.trace_add('write', lambda _, __, ___: Username.check_username(content.get(), True, background_canv, canva_id))
-    user_entry.focus()
-
-    # placing
-
-    background_canv.place(x=-2, y=-2)
-    user_entry.place(x=29, y=163)
-    go_but.place(x=84, y=220)
-
-    go_but.wait_window(win)
-
-    try:
-        if os.path.exists(USERS_LIST):
-            os.remove(USERS_LIST)
-    except PermissionError:
-        log.warning("PermissionError", exc_info=True)
-
-    try:
-        return win, Username(win).username
-    except AttributeError:
-        log.warning("AttributeError", exc_info=True)
-        return None
+    def get(self) -> tuple[tk.Tk, str | None] | None:
+        """Returns the username value"""
+        return self.username

@@ -6,7 +6,7 @@ from storing import File
 from logger import Logger
 from config import Config
 from firebase import Firebase as Fb
-from setusernamegui import set_username
+from setusernamegui import SetUsernameGui
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -19,18 +19,23 @@ LOGS_PATH = os.path.join(PATH, 'logs')
 
 
 def setup():
-
     if os.path.exists(CONFIG_FILE):
         return False
 
     log = local_setup()
 
     log.info('Asking username...')
-    win, username = set_username()
-    log.info(f'Username successfully set: {username}')
+    res = SetUsernameGui().get()
+
+    if res is None:
+        shutdown(log)
+
+    win, username = res
 
     if username is None:
         shutdown(log)
+
+    log.info(f'Username successfully set: {username}')
 
     configuration(username, log)
     generate_keys(log)
