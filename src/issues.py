@@ -1,5 +1,5 @@
 import json
-import time
+import uuid
 import requests
 import alerts as alt
 import tkinter as tk
@@ -14,9 +14,11 @@ class Issue:
 
     def __init__(self, win: tk.Toplevel, title: str, body: str, labels: list[str], attachments: list[str]):
         self.win = win
+
         self.OWNER = 'RichardBoy05'
         self.REPO = 'EasyCrypto'
         self.TOKEN = Sd.get_token()
+
         self.url = f'https://api.github.com/repos/{self.OWNER}/{self.REPO}/import/issues'
         self.headers = {
             'Authorization': f'token {self.TOKEN}',
@@ -27,8 +29,7 @@ class Issue:
         self.body = body
         self.labels = labels
         self.attachments = attachments
-        self.time = datetime.now()
-        self.footer = f'\n\n[Generato da **EasyCrypto** il {self.time.strftime("%d/%m/%y alle %H:%M:%S")}'
+        self.footer = f'\n\n[Generato da **EasyCrypto** il {datetime.now().strftime("%d/%m/%y alle %H:%M:%S")}'
         self.log = Logger(__name__).default()
         self.log_footer = "\n\n----------------------------------------------------------------------------------\n\n"
 
@@ -68,21 +69,22 @@ class Issue:
         links = '\n\n**[Allegati]**'
 
         for i in self.attachments:
-            if not self.__upload_file(i):
+
+            file_id = uuid.uuid4()
+            if not self.__upload_file(i, file_id):
                 continue
 
-            text = f'\n[{i[i.rfind("/") + 1::]}]'
-            filelink = f'{self.title}[{self.time}]{i[i.rfind(".")::]})'
-            url = f'(https://github.com/{self.OWNER}/{self.REPO}/tree/main/issues/{filelink}'.replace(' ', '-')
+            url = f'(https://github.com/{self.OWNER}/{self.REPO}/tree/main/issues/{file_id}{i[i.rfind(".")::]})'
 
+            text = f'\n[{i[i.rfind("/") + 1::]}]'
             links += (text + url)
 
         return self.body + links
 
-    def __upload_file(self, attachment: str) -> bool:
+    def __upload_file(self, attachment: str, file_id: uuid.UUID) -> bool:
         """ Uploads a file to the EasyCrypto repository """
         extension = attachment[attachment.rfind(".")::]
-        git_path = f'issues/{self.title}[{self.time}]{extension}'.replace(' ', '-')
+        git_path = f'issues/{file_id}{extension}'
         github = Github(self.TOKEN)
 
         try:
@@ -102,9 +104,9 @@ class Issue:
         try:
             # noinspection PyTypeChecker
             repo.create_file(git_path, 'New issue attachment', data, branch='main')
+
         except requests.exceptions.ConnectionError:
             self.log.warning('requests.exceptions.ConnectionError', exc_info=True)
             return False
 
-        time.sleep(1)
         return True

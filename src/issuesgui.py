@@ -8,7 +8,7 @@ from tktooltip import ToolTip
 from tkinter import filedialog
 
 
-class IssueGui(tk.Toplevel):  # come evento aggiungi che copia link github negli appunti per esempio e vedi se fare che tsto default ritorna quando testo in binaoc
+class IssueGui(tk.Toplevel):  # vedi se lasciare link github
     def __init__(self, win):
         super().__init__()
         self.win = win
@@ -100,8 +100,8 @@ class IssueGui(tk.Toplevel):  # come evento aggiungi che copia link github negli
         # tooltips
 
         self.default_attach_text = 'Nessuno allegato selezionato!'
-        self.attach_tip = ToolTip(self.attach_but, msg=self.default_attach_text, delay=0.5)
-        ToolTip(self.bg, msg='Rimuovi gli allegati', delay=0.5, canva_tag='rem_attach')
+        self.attach_tip = ToolTip(self.attach_but, msg=self.default_attach_text, delay=0.4)
+        ToolTip(self.bg, msg='Rimuovi gli allegati', delay=0.2, canva_tag='rem_attach')
 
         # placing
 
@@ -231,6 +231,9 @@ class IssueGui(tk.Toplevel):  # come evento aggiungi che copia link github negli
 
     def rem_attach(self, _) -> None:
 
+        self.bg.itemconfig('rem_attach', image=self.REM_ATTACH_IMG)
+        self.after(100, lambda: self.bg.itemconfig('rem_attach', image=self.REM_ATTACH_IMG_HOV))
+
         self.attachments.clear()
         self.attach_tip.__setattr__('msg', self.default_attach_text)
 
@@ -251,4 +254,3 @@ class IssueGui(tk.Toplevel):  # come evento aggiungi che copia link github negli
                 return 'suggestion'
             case _:
                 return None
-
