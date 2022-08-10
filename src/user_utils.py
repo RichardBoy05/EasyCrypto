@@ -20,13 +20,13 @@ class Username:
             return None
         return Fb(self.win).get_storage()
 
-    def execute(self, win, entry_var, to_set, background_canva, canva_id):
+    def execute(self, win, entry, to_set, canva, canva_id):
 
-        if background_canva.itemcget(canva_id, 'text') != 'Nickname valido!':
+        if canva.itemcget(canva_id, 'text') != 'Nickname valido!':
             sound.PlaySound('SystemHand', sound.SND_ASYNC)
             return
 
-        self.username = entry_var.get()
+        self.username = entry.get()
 
         if os.path.exists(os.path.join(CRYPT_PATH, 'firstboot')):
             self.username = None
@@ -47,7 +47,7 @@ class Username:
         win.destroy()
 
     @classmethod
-    def check_username(cls, username, to_set, canva, canva_id):
+    def check_nick(cls, username, to_set, canva, canva_id):
         if len(username) < 3:
             canva.itemconfig(canva_id, text='Nickname troppo corto!', fill='red')
             return

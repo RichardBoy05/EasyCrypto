@@ -17,7 +17,7 @@ CRYPT_PATH = os.path.join(PATH, 'crypt')
 STORAGE = os.path.join(CRYPT_PATH, 'store.json')
 
 
-def encrypt(win, path, password, keep_copy):
+def encrypt(win, path, pw, keep_copy):
     log = Logger(__name__).default()
 
     with open(path, 'rb') as file:
@@ -37,7 +37,7 @@ def encrypt(win, path, password, keep_copy):
         iterations=390000,
     )
 
-    key = base64.urlsafe_b64encode(kdf.derive(password))
+    key = base64.urlsafe_b64encode(kdf.derive(pw))
 
     encrypter = Fernet(key)
 
@@ -75,7 +75,7 @@ def encrypt(win, path, password, keep_copy):
     return True
 
 
-def decrypt(win, path, password, keep_copy):
+def decrypt(win, path, pw, keep_copy):
     log = Logger(__name__).default()
 
     os.chmod(path, S_IWRITE)
@@ -100,7 +100,7 @@ def decrypt(win, path, password, keep_copy):
     )
 
     try:
-        kdf.verify(password, base64.urlsafe_b64decode(key))
+        kdf.verify(pw, base64.urlsafe_b64decode(key))
     except InvalidKey:
         alt.invalid_password(win, path[path.rfind('/') + 1:path.rfind('.'):])
         log.warning("InvalidKey", exc_info=True)

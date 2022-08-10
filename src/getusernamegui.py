@@ -7,75 +7,93 @@ PATH = os.path.join(os.getenv('APPDATA'), 'EasyCrypto')
 USERS_LIST = os.path.join(PATH, 'users_list.txt')
 
 
-def get_username(main_win):
-    log = Logger(__name__).default()
+class GetUsername(tk.Toplevel):
 
-    win = tk.Toplevel(main_win)
-    win.grab_set()
+    def __init__(self):
+        super().__init__()
 
-    WIDTH = 425
-    HEIGHT = 200
+        self.__username = None  # username string
+        self.__user_object = Username(self)  # username instance (from: src/user_utils.py -> Username())
 
-    WINDOW_ICON = tk.PhotoImage(file='res/logo.png', master=win)
-    BACKGROUND_IMAGE = tk.PhotoImage(file='res/get_username_background.png', master=win)
-    GO_IMAGE = tk.PhotoImage(file='res/set_username_but.png', master=win)
-    GO_IMAGE_HOVERED = tk.PhotoImage(file='res/set_username_but_hovered.png', master=win)
+        # settings
 
-    x = int(win.winfo_screenwidth() / 2 - (WIDTH / 2))
-    y = int(win.winfo_screenheight() / 2 - (HEIGHT / 2))
+        self.grab_set()
 
-    win.title('EasyCrypto')
-    win.geometry(str(WIDTH) + 'x' + str(HEIGHT) + '+' + str(x) + '+' + str(y))
-    win.resizable(False, False)
-    win.iconphoto(True, WINDOW_ICON)
-    win.protocol("WM_DELETE_WINDOW", lambda: correct_closing(win))
+        self.WIDTH = 425
+        self.HEIGHT = 200
+        self.x = int(self.winfo_screenwidth() / 2 - (self.WIDTH / 2))
+        self.y = int(self.winfo_screenheight() / 2 - (self.HEIGHT / 2))
 
-    data = tk.StringVar()
-    def_font = ('Arial Baltic', 16)
+        self.title('EasyCrypto')
+        self.geometry('{}x{}+{}+{}'.format(self.WIDTH, self.HEIGHT, self.x, self.y))
+        self.resizable(False, False)
+        self.iconphoto(True, tk.PhotoImage(file='res/logo.png', master=self))
+        self.protocol("WM_DELETE_WINDOW", self.correct_closing)
+        self.log = Logger(__name__).default()
 
-    # functions
+        # check internet connection
 
-    storage = Username(win).get_users_list()
+        if self.__user_object.get_users_list() is None:
+            self.__username = None
+            self.destroy()
 
-    if storage is None:
-        win.destroy()
-        return None
+        # images
 
-    # widgets
+        self.BG_IMG = tk.PhotoImage(file='res/get_username_background.png', master=self)
+        self.GO_IMG = tk.PhotoImage(file='res/set_username_but.png', master=self)
+        self.GO_IMAGE_HOV = tk.PhotoImage(file='res/set_username_but_hovered.png', master=self)
 
-    background_canv = tk.Canvas(win, width=425, height=200)
-    background_canv.create_image(214, 102, image=BACKGROUND_IMAGE)
-    canva_id = background_canv.create_text(30, 158, text='Nickname troppo corto!', fill='red', anchor='w')
-    username_entry = tk.Entry(win, width=19, font=def_font, relief='ridge', bd=2, textvariable=data)
-    go_but = tk.Button(win, image=GO_IMAGE, borderwidth=0, bg='#160ca3',
-                       command=lambda: Username(win).execute(win, data, False, background_canv, canva_id))
+        # fonts and misc
 
-    # configuration and bindings
+        self.def_font = ('Arial Baltic', 16)
+        self.explorer_files = [('Tutti i file', '*.*')]
+        self.attachments = []
+        self.data = tk.StringVar()
 
-    go_but.bind("<Enter>", lambda _: go_but.config(image=GO_IMAGE_HOVERED))
-    go_but.bind("<Leave>", lambda _: go_but.config(image=GO_IMAGE))
-    data.trace_add('write',
-                   lambda _, __, ___: Username.check_username(username_entry.get(), False, background_canv, canva_id))
-    username_entry.focus()
+        # widgets
 
-    # placing
+        self.bg = tk.Canvas(self, width=425, height=200)
+        self.bg.create_image(214, 102, image=self.BG_IMG)
+        self.canva_id = self.bg.create_text(30, 158, text='Nickname troppo corto!', fill='red', anchor='w')
+        self.entry = tk.Entry(self, width=19, font=self.def_font, relief='ridge', bd=2, textvariable=self.data)
+        self.go_but = tk.Button(self, image=self.GO_IMG, borderwidth=0, bg='#160ca3', command=lambda: self.__go())
 
-    background_canv.place(x=-2, y=-2)
-    username_entry.place(x=27, y=115)
-    go_but.place(x=291, y=109)
+        # configuration and bindings
 
-    go_but.wait_window(win)
+        self.go_but.bind("<Enter>", lambda _: self.go_but.config(image=self.GO_IMAGE_HOV))
+        self.go_but.bind("<Leave>", lambda _: self.go_but.config(image=self.GO_IMG))
+        self.data.trace_add('write', lambda *args: Username.check_nick(self.entry.get(), False, self.bg, self.canva_id))
+        self.entry.focus()
 
-    if os.path.exists(USERS_LIST):
-        os.remove(USERS_LIST)
+        # placing
 
-    try:
-        return Username(win).username
-    except AttributeError:
-        log.warning("AttributeError", exc_info=True)
-        return None
+        self.bg.place(x=-2, y=-2)
+        self.entry.place(x=27, y=115)
+        self.go_but.place(x=291, y=109)
 
+        # wait window event
 
-def correct_closing(win):
-    Username(win).username = None
-    win.destroy()
+        self.go_but.wait_window(self)
+
+        try:
+            if os.path.exists(USERS_LIST):
+                os.remove(USERS_LIST)
+        except PermissionError:
+            self.log.warning("PermissionError", exc_info=True)
+
+        self.__username = self.__user_object.username
+
+    # methods
+
+    def __go(self) -> None:
+        """ Sets the nickname for the current user """
+        self.__user_object.execute(self, entry=self.data, to_set=False, canva=self.bg, canva_id=self.canva_id)
+
+    def get_username(self) -> str | None:
+        """ Returns the username value """
+        return self.__username
+
+    def correct_closing(self) -> None:
+        """ Closes the window after assigning the username value to None """
+        self.__user_object.username = None
+        self.destroy()

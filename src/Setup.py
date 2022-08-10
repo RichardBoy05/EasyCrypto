@@ -25,15 +25,12 @@ def setup():
     log = local_setup()
 
     log.info('Asking username...')
-    res = SetUsernameGui().get()
+    result = SetUsernameGui().get_username()
 
-    if res is None:
+    if result is None or result[1] is None:
         shutdown(log)
 
-    win, username = res
-
-    if username is None:
-        shutdown(log)
+    win, username = result
 
     log.info(f'Username successfully set: {username}')
 

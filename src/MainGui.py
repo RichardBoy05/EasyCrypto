@@ -3,6 +3,7 @@ import web
 import alerts as alt
 import tkinter as tk
 from config import Config
+from typing import Literal
 import local_crypter as lc
 import passwordgui as pwgui
 from counter import Counter
@@ -10,174 +11,198 @@ from rsa_utils import Share
 import rsa_encryption as rsa
 from tkinter import filedialog
 from issuesgui import IssueGui
-from getusernamegui import get_username
+from getusernamegui import GetUsername
 
 
-class MainGui:
+class MainGui(tk.Tk):
+    """
+    Structure of the EasyCrypto Main GUI
+
+    Naming conventions:
+    - Enc -> Encrypt
+    - Dec -> Decrypt
+    - Shr -> Share
+    - Trs -> Translate
+
+    """
 
     def __init__(self):
+        super().__init__()
 
-        self.win = tk.Tk()
+        # settings
 
-        self.width = 450
-        self.height = 450
-        self.icon = tk.PhotoImage(file='res/logo.png', master=self.win)
-        self.background = tk.PhotoImage(file='res/background.png', master=self.win)
-        self.x = int(self.win.winfo_screenwidth() / 2 - (self.width / 2))
-        self.y = int(self.win.winfo_screenheight() / 2 - (self.height / 2))
+        self.WIDTH = 450
+        self.HEIGHT = 450
+        self.x = int(self.winfo_screenwidth() / 2 - (self.WIDTH / 2))
+        self.y = int(self.winfo_screenheight() / 2 - (self.HEIGHT / 2))
 
-        self.win.title('EasyCrypto')
-        self.win.geometry('%ix%i+%i+%i' % (self.width, self.height, self.x, self.y))
-        self.win.resizable(False, False)
-        self.win.iconphoto(True, self.icon)
-        self.win.protocol("WM_DELETE_WINDOW", self.correct_closing)
-        self.bg = tk.Canvas(self.win, width=450, height=450)
-        self.bg.create_image(226, 226, image=self.background)
+        self.title('EasyCrypto')
+        self.geometry('{}x{}+{}+{}'.format(self.WIDTH, self.HEIGHT, self.x, self.y))
+        self.resizable(False, False)
+        self.iconphoto(True, tk.PhotoImage(file='res/logo.png', master=self))
+        self.protocol("WM_DELETE_WINDOW", self.correct_closing)
 
-        self.counter_font = ('Courier', 14)
+        # images
+
+        self.BG_IMG = tk.PhotoImage(file='res/background.png', master=self)
+        self.ENC_IMG = tk.PhotoImage(file='res/encrypt.png', master=self)
+        self.ENC_IMG_HOV = tk.PhotoImage(file='res/encrypt_hovered.png', master=self)
+        self.DEC_IMG = tk.PhotoImage(file='res/decrypt.png', master=self)
+        self.DEC_IMG_HOV = tk.PhotoImage(file='res/decrypt_hovered.png', master=self)
+        self.SHR_IMG = tk.PhotoImage(file='res/share.png', master=self)
+        self.SHR_IMG_HOV = tk.PhotoImage(file='res/share_hovered.png', master=self)
+        self.TRS_IMG = tk.PhotoImage(file='res/translate.png', master=self)
+        self.TRS_IMG_HOV = tk.PhotoImage(file='res/translate_hovered.png', master=self)
+        self.INFO_IMG = tk.PhotoImage(file='res/info.png', master=self)
+        self.INFO_IMG_HOV = tk.PhotoImage(file='res/info_hovered.png', master=self)
+        self.GIT_IMG = tk.PhotoImage(file='res/github.png', master=self)
+        self.GIT_IMG_HOV = tk.PhotoImage(file='res/github_hovered.png', master=self)
+        self.ISSUE_IMG = tk.PhotoImage(file='res/issue_icon.png', master=self)
+        self.ISSUE_IMG_HOV = tk.PhotoImage(file='res/issue_icon_hovered.png', master=self)
+
+        # fonts and misc
+
+        self.counters_font = ('Courier', 14)
         self.readme = 'https://github.com/RichardBoy05/EasyCrypto/blob/main/README.md'
+        self.repo = 'https://github.com/RichardBoy05/EasyCrypto'
         self.explorer_files = [('Tutti i file', '*.*')]
-
-        enc_text = Config.parse_with_key('TotalEncryptions', True)
-        dec_text = Config.parse_with_key('TotalDecryptions', True)
-        shr_text = Config.parse_with_key('TotalShares', True)
-        trs_text = Config.parse_with_key('TotalTranslations', True)
-        self.encrypt_count = self.bg.create_text(162, 161, text=enc_text, font=self.counter_font, anchor='center')
-        self.decrypt_count = self.bg.create_text(412, 161, text=dec_text, font=self.counter_font, anchor='center')
-        self.share_count = self.bg.create_text(162, 200, text=shr_text, font=self.counter_font, anchor='center')
-        self.translate_count = self.bg.create_text(412, 200, text=trs_text, font=self.counter_font, anchor='center')
-
-        ENC_IMG = tk.PhotoImage(file='res/crypt.png', master=self.win)
-        ENC_IMG_HOV = tk.PhotoImage(file='res/crypt_hovered.png', master=self.win)
-        DEC_IMG = tk.PhotoImage(file='res/decrypt.png', master=self.win)
-        DEC_IMG_HOV = tk.PhotoImage(file='res/decrypt_hovered.png', master=self.win)
-        SHR_IMG = tk.PhotoImage(file='res/share.png', master=self.win)
-        SHR_IMG_HOV = tk.PhotoImage(file='res/share_hovered.png', master=self.win)
-        TRS_IMG = tk.PhotoImage(file='res/translate.png', master=self.win)
-        TRS_IMG_HOV = tk.PhotoImage(file='res/translate_hovered.png', master=self.win)
-        INFO_IMG = tk.PhotoImage(file='res/info.png', master=self.win)
-        INFO_IMG_HOV = tk.PhotoImage(file='res/info_hovered.png', master=self.win)
-        GIT_IMG = tk.PhotoImage(file='res/github.png', master=self.win)
-        GIT_IMG_HOV = tk.PhotoImage(file='res/github_hovered.png', master=self.win)
-        SETTINGS_IMG = tk.PhotoImage(file='res/settings.png', master=self.win)
-        SETTINGS_IMG_HOV = tk.PhotoImage(file='res/settings_hovered.png', master=self.win)
+        self.enc_text = Config.parse_with_key('TotalEncryptions', True)
+        self.dec_text = Config.parse_with_key('TotalDecryptions', True)
+        self.shr_text = Config.parse_with_key('TotalShares', True)
+        self.trs_text = Config.parse_with_key('TotalTranslations', True)
 
         # widgets
 
-        enc_but = tk.Button(self.win, image=ENC_IMG, bd=0, bg='#0c11a8', command=lambda: self.execute('encrypt'))
-        dec_but = tk.Button(self.win, image=DEC_IMG, bd=0, bg='#f0a000', command=lambda: self.execute('decrypt'))
-        shr_but = tk.Button(self.win, image=SHR_IMG, bd=0, bg='#0c11a8', command=lambda: self.execute('share'))
-        trs_but = tk.Button(self.win, image=TRS_IMG, bd=0, bg='#f0a000', command=lambda: self.execute('translate'))
-        info_lab = tk.Label(self.win, image=INFO_IMG, bd=0, bg='#cbcbcb')
-        git_lab = tk.Label(self.win, image=GIT_IMG, bd=0, bg='#cbcbcb')
-        settings_lab = tk.Label(self.win, image=SETTINGS_IMG, bd=0, bg='#cbcbcb')
+        self.bg = tk.Canvas(self, width=450, height=450)
+        self.bg.create_image(226, 226, image=self.BG_IMG)
+        self.enc_count = self.bg.create_text(162, 161, text=self.enc_text, font=self.counters_font, anchor='center')
+        self.dec_count = self.bg.create_text(412, 161, text=self.dec_text, font=self.counters_font, anchor='center')
+        self.shr_count = self.bg.create_text(162, 200, text=self.shr_text, font=self.counters_font, anchor='center')
+        self.trs_count = self.bg.create_text(412, 200, text=self.trs_text, font=self.counters_font, anchor='center')
+        self.enc_but = tk.Button(self, image=self.ENC_IMG, bd=0, bg='#0c11a8', command=lambda: self.execute('enc'))
+        self.dec_but = tk.Button(self, image=self.DEC_IMG, bd=0, bg='#f0a000', command=lambda: self.execute('dec'))
+        self.shr_but = tk.Button(self, image=self.SHR_IMG, bd=0, bg='#0c11a8', command=lambda: self.execute('shr'))
+        self.trs_but = tk.Button(self, image=self.TRS_IMG, bd=0, bg='#f0a000', command=lambda: self.execute('trs'))
+        self.info_lab = tk.Label(self, image=self.INFO_IMG, bd=0, bg='#cbcbcb')
+        self.git_lab = tk.Label(self, image=self.GIT_IMG, bd=0, bg='#cbcbcb')
+        self.issue_lab = tk.Label(self, image=self.ISSUE_IMG, bd=0, bg='#cbcbcb')
 
-        # Hover events
+        # tooltips
 
-        enc_but.bind("<Enter>", lambda _: enc_but.config(image=ENC_IMG_HOV))
-        enc_but.bind("<Leave>", lambda _: enc_but.config(image=ENC_IMG))
-        dec_but.bind("<Enter>", lambda _: dec_but.config(image=DEC_IMG_HOV))
-        dec_but.bind("<Leave>", lambda _: dec_but.config(image=DEC_IMG))
-        shr_but.bind("<Enter>", lambda _: shr_but.config(image=SHR_IMG_HOV))
-        shr_but.bind("<Leave>", lambda _: shr_but.config(image=SHR_IMG))
-        trs_but.bind("<Enter>", lambda _: trs_but.config(image=TRS_IMG_HOV))
-        trs_but.bind("<Leave>", lambda _: trs_but.config(image=TRS_IMG))
-        info_lab.bind("<Enter>", lambda _: info_lab.config(image=INFO_IMG_HOV))
-        info_lab.bind("<Leave>", lambda _: info_lab.config(image=INFO_IMG))
-        info_lab.bind("<Button-1>", lambda _: web.Browser(self.readme).search())
-        git_lab.bind("<Enter>", lambda _: git_lab.config(image=GIT_IMG_HOV))
-        git_lab.bind("<Leave>", lambda _: git_lab.config(image=GIT_IMG))
-        git_lab.bind("<Button-1>", lambda _: web.Browser('https://github.com/RichardBoy05/EasyCrypto').search())
-        settings_lab.bind("<Enter>", lambda _: settings_lab.config(image=SETTINGS_IMG_HOV))
-        settings_lab.bind("<Leave>", lambda _: settings_lab.config(image=SETTINGS_IMG))
-        settings_lab.bind("<Button-1>", lambda _: IssueGui(self.win))
+        # bindings
+
+        self.enc_but.bind("<Enter>", lambda _: self.enc_but.config(image=self.ENC_IMG_HOV))
+        self.enc_but.bind("<Leave>", lambda _: self.enc_but.config(image=self.ENC_IMG))
+        self.dec_but.bind("<Enter>", lambda _: self.dec_but.config(image=self.DEC_IMG_HOV))
+        self.dec_but.bind("<Leave>", lambda _: self.dec_but.config(image=self.DEC_IMG))
+        self.shr_but.bind("<Enter>", lambda _: self.shr_but.config(image=self.SHR_IMG_HOV))
+        self.shr_but.bind("<Leave>", lambda _: self.shr_but.config(image=self.SHR_IMG))
+        self.trs_but.bind("<Enter>", lambda _: self.trs_but.config(image=self.TRS_IMG_HOV))
+        self.trs_but.bind("<Leave>", lambda _: self.trs_but.config(image=self.TRS_IMG))
+        self.info_lab.bind("<Enter>", lambda _: self.info_lab.config(image=self.INFO_IMG_HOV))
+        self.info_lab.bind("<Leave>", lambda _: self.info_lab.config(image=self.INFO_IMG))
+        self.git_lab.bind("<Enter>", lambda _: self.git_lab.config(image=self.GIT_IMG_HOV))
+        self.git_lab.bind("<Leave>", lambda _: self.git_lab.config(image=self.GIT_IMG))
+        self.issue_lab.bind("<Enter>", lambda _: self.issue_lab.config(image=self.ISSUE_IMG_HOV))
+        self.issue_lab.bind("<Leave>", lambda _: self.issue_lab.config(image=self.ISSUE_IMG))
+        self.info_lab.bind("<Button-1>", lambda _: web.Browser(self.readme).search())
+        self.git_lab.bind("<Button-1>", lambda _: web.Browser(self.repo).search())
+        self.issue_lab.bind("<Button-1>", lambda _: IssueGui(self))
 
         # placing
 
         self.bg.place(x=-2, y=-2)
-        enc_but.place(x=28, y=237)
-        dec_but.place(x=248, y=237)
-        trs_but.place(x=248, y=337)
-        shr_but.place(x=28, y=337)
-        info_lab.place(x=363, y=428)
-        git_lab.place(x=391, y=428)
-        settings_lab.place(x=419, y=428)
+        self.enc_but.place(x=28, y=237)
+        self.dec_but.place(x=248, y=237)
+        self.trs_but.place(x=248, y=337)
+        self.shr_but.place(x=28, y=337)
+        self.info_lab.place(x=362, y=428)
+        self.git_lab.place(x=391, y=428)
+        self.issue_lab.place(x=420, y=428)
 
-        self.win.mainloop()
+        self.mainloop()
 
-    def execute(self, task):
+    # methods
+
+    def execute(self, task: Literal['enc', 'dec', 'shr', 'trs']) -> None:
+        """ Redirects the code flow to the matching action """
 
         path = tk.filedialog.askopenfilenames(title='Seleziona uno o più file...', filetypes=self.explorer_files)
-
         if not path:
             return
 
-        if task == 'encrypt':
-            result = pwgui.ask_password(self.win, True, True if len(path) == 1 else False)
-            password, keepcopy = result
-            if not password:
-                return
+        if task == 'enc':
+            self.encrypt(path)
+        elif task == 'dec':
+            self.decrypt(path)
+        elif task == 'shr':
+            self.share(path)
+        elif task == 'trs':
+            self.translate(path)
 
-            has_been_encrypted = [lc.encrypt(self.win, i, password.encode('utf-8'), keepcopy) for i in path]
+    def encrypt(self, path: str) -> None:
+        """ Encrypts files with password """
 
-            for i in has_been_encrypted:
-                if i:
-                    Counter(self.win, self.bg.itemcget(self.encrypt_count, 'text'),
-                            self.encrypt_count).update('TotalEncryptions')
-
-            if all(has_been_encrypted):
-                alt.encrypted_successfully_alert(self.win, len(path))
+        password, keepcopy = pwgui.ask_password(self, to_encrypt=True, one_file=True if len(path) == 1 else False)
+        if not password:
             return
 
-        if task == 'decrypt':
-            result = pwgui.ask_password(self.win, False, True if len(path) == 1 else False)
-            password, keepcopy = result
-            if not password:
-                return
+        has_been_encrypted = [lc.encrypt(self, path=i, pw=password.encode('utf-8'), keep_copy=keepcopy) for i in path]
 
-            has_been_decrypted = [lc.decrypt(self.win, i, password.encode('utf-8'), keepcopy) for i in path]
+        for i in has_been_encrypted:
+            if i:
+                Counter(self, self.bg.itemcget(self.enc_count, 'text'), self.enc_count).update('TotalEncryptions')
 
-            for i in has_been_decrypted:
-                if i:
-                    Counter(self.win, self.bg.itemcget(self.decrypt_count, 'text'),
-                            self.decrypt_count).update('TotalDecryptions')
+        if all(has_been_encrypted):
+            alt.encrypted_successfully_alert(self, len(path))
 
-            if all(has_been_decrypted):
-                alt.decrypted_successfully_alert(self.win, len(path))
+    def decrypt(self, path: str) -> None:
+        """ Decrypts files with password """
+
+        password, keepcopy = pwgui.ask_password(self, to_encrypt=False, one_file=True if len(path) == 1 else False)
+        if not password:
             return
 
-        if task == 'share':
+        has_been_decrypted = [lc.decrypt(self, path=i, pw=password.encode('utf-8'), keep_copy=keepcopy) for i in path]
 
-            fixed_path = [i for i in path if not Share(self.win).is_already_shared(i)]
-            if len(fixed_path) == 0:
-                return
+        for i in has_been_decrypted:
+            if i:
+                Counter(self, self.bg.itemcget(self.dec_count, 'text'), self.dec_count).update('TotalDecryptions')
 
-            username = get_username(self.win)
-            if username is None:
-                return
+        if all(has_been_decrypted):
+            alt.decrypted_successfully_alert(self, len(path))
 
-            has_been_shared = [rsa.share(self.win, i, username) for i in fixed_path]
+    def share(self, path: str) -> None:
+        """ Shares encrypted files with someone given the receiver's nickname """
 
-            for i in has_been_shared:
-                if i:
-                    Counter(self.win, self.bg.itemcget(self.share_count, 'text'), self.share_count).update('TotalShares')
-
-            if all(has_been_shared):
-                alt.shared_successfully_alert(self.win, len(fixed_path))
+        fixed_path = [i for i in path if not Share(self).is_already_shared(i)]
+        if len(fixed_path) == 0:
             return
 
-        if task == 'translate':
-
-            has_been_translated = [rsa.translate(self.win, i) for i in path]
-
-            for i in has_been_translated:
-                if i:
-                    Counter(self.win, self.bg.itemcget(self.share_count, 'text'),
-                            self.translate_count).update('TotalTranslations')
-
-            if all(has_been_translated):
-                alt.translated_successfully_alert(self.win, len(path))
+        username = GetUsername().get_username()
+        if username is None:
             return
+
+        has_been_shared = [rsa.share(self, i, username) for i in fixed_path]
+
+        for i in has_been_shared:
+            if i:
+                Counter(self, self.bg.itemcget(self.shr_count, 'text'), self.shr_count).update('TotalShares')
+
+        if all(has_been_shared):
+            alt.shared_successfully_alert(self, len(fixed_path))
+
+    def translate(self, path: str) -> None:
+        """ Translates encrypted files received by another user """
+
+        has_been_translated = [rsa.translate(self, i) for i in path]
+
+        for i in has_been_translated:
+            if i:
+                Counter(self, self.bg.itemcget(self.trs_count, 'text'), self.trs_count).update('TotalTranslations')
+
+        if all(has_been_translated):
+            alt.translated_successfully_alert(self, len(path))
 
     def correct_closing(self):
         PATH = os.path.join(os.getenv('APPDATA'), 'EasyCrypto')
@@ -186,7 +211,7 @@ class MainGui:
         if os.path.exists(os.path.join(CRYPT_PATH, "firstboot")):
             os.remove(os.path.join(CRYPT_PATH, "firstboot"))
 
-        self.win.destroy()
+        self.destroy()
 
 
 def init():
