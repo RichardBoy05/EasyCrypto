@@ -12,13 +12,13 @@ def ask_password(main_win, to_encrypt, one_file):
     WIDTH = 265
     HEIGHT = 145
 
-    WINDOW_ICON = tk.PhotoImage(file='res/logo.png', master=win)
-    PADLOCK_CLOSED = tk.PhotoImage(file='res/padlock_closed.png', master=win)
-    PADLOCK_CLOSED_HOVERED = tk.PhotoImage(file='res/padlock_closed_hovered.png', master=win)
-    PADLOCK_OPENED = tk.PhotoImage(file='res/padlock_opened.png', master=win)
-    PADLOCK_OPENED_HOVERED = tk.PhotoImage(file='res/padlock_opened_hovered.png', master=win)
-    SHOW = tk.PhotoImage(file='res/show.png', master=win)
-    HIDE = tk.PhotoImage(file='res/hide.png', master=win)
+    WINDOW_ICON = tk.PhotoImage(file='resources/logo.png', master=win)
+    PADLOCK_CLOSED = tk.PhotoImage(file='resources/padlock_closed.png', master=win)
+    PADLOCK_CLOSED_HOVERED = tk.PhotoImage(file='resources/padlock_closed_hovered.png', master=win)
+    PADLOCK_OPENED = tk.PhotoImage(file='resources/padlock_opened.png', master=win)
+    PADLOCK_OPENED_HOVERED = tk.PhotoImage(file='resources/padlock_opened_hovered.png', master=win)
+    SHOW = tk.PhotoImage(file='resources/show.png', master=win)
+    HIDE = tk.PhotoImage(file='resources/hide.png', master=win)
 
     x = int(win.winfo_screenwidth() / 2 - (WIDTH / 2))
     y = int(win.winfo_screenheight() / 2 - (HEIGHT / 2))

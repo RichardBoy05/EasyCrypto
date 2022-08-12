@@ -26,11 +26,11 @@ def translated_successfully_alert(win, tuple_length):
 
 
 def already_encrypted_alert(win, name):
-    messagebox.showerror("Error!", f"Il file '{name}' è già stato cryptato!", parent=win)
+    messagebox.showerror("Error!", f"Il file '{name}' è già stato criptato!", parent=win)
 
 
 def not_encrypted_alert(win, name):
-    messagebox.showerror("Error!", f"Il file '{name}' non è cryptato!", parent=win)
+    messagebox.showerror("Error!", f"Il file '{name}' non è criptato!", parent=win)
 
 
 def permission_error_alert(win, e):

@@ -2,7 +2,6 @@ import os
 import web
 import tkinter as tk
 from logger import Logger
-from tktooltip import ToolTip
 from user_utils import Username
 
 PATH = os.path.join(os.getenv('APPDATA'), 'EasyCrypto')
@@ -29,7 +28,7 @@ class SetUsernameGui(tk.Tk):
         self.title('EasyCrypto')
         self.geometry('{}x{}+{}+{}'.format(self.WIDTH, self.HEIGHT, self.x, self.y))
         self.resizable(False, False)
-        self.iconphoto(True, tk.PhotoImage(file='res/logo.png', master=self))
+        self.iconphoto(True, tk.PhotoImage(file='resources/logo.png', master=self))
         self.log = Logger(__name__).default()
 
         # check internet connection
@@ -40,11 +39,11 @@ class SetUsernameGui(tk.Tk):
 
         # images
 
-        self.BG_IMG = tk.PhotoImage(file='res/set_username_background.png', master=self)
-        self.GO_IMG = tk.PhotoImage(file='res/set_username_but.png', master=self)
-        self.GO_IMG_HOV = tk.PhotoImage(file='res/set_username_but_hovered.png', master=self)
-        self.GUIDE_IMG = tk.PhotoImage(file='res/check_guide.png', master=self)
-        self.GUIDE_IMG_HOV = tk.PhotoImage(file='res/check_guide_hovered.png', master=self)
+        self.BG_IMG = tk.PhotoImage(file='resources/set_username_background.png', master=self)
+        self.GO_IMG = tk.PhotoImage(file='resources/set_username_but.png', master=self)
+        self.GO_IMG_HOV = tk.PhotoImage(file='resources/set_username_but_hovered.png', master=self)
+        self.GUIDE_IMG = tk.PhotoImage(file='resources/check_guide.png', master=self)
+        self.GUIDE_IMG_HOV = tk.PhotoImage(file='resources/check_guide_hovered.png', master=self)
 
         # fonts and misc
 
@@ -64,9 +63,9 @@ class SetUsernameGui(tk.Tk):
 
         self.go_but.bind("<Enter>", lambda _: self.go_but.config(image=self.GO_IMG_HOV))
         self.go_but.bind("<Leave>", lambda _: self.go_but.config(image=self.GO_IMG))
-        self.bg.tag_bind('guide', "<Button-1>", lambda _: self.__readme_redirect())
-        self.bg.tag_bind('guide', "<Enter>", lambda _: self.bg.itemconfig('guide', image=self.GUIDE_IMG_HOV))
-        self.bg.tag_bind('guide', "<Leave>", lambda _: self.bg.itemconfig('guide', image=self.GUIDE_IMG))
+        self.bg.tag_bind('guide', "<Button-1>", lambda _: self.__readme_redirect(), add='+')
+        self.bg.tag_bind('guide', "<Enter>", lambda _: self.bg.itemconfig('guide', image=self.GUIDE_IMG_HOV), add='+')
+        self.bg.tag_bind('guide', "<Leave>", lambda _: self.bg.itemconfig('guide', image=self.GUIDE_IMG), add='+')
         self.text.trace_add('write', lambda *args: Username.check_nick(self.text.get(), True, self.bg, self.nik_id))
         self.entry.focus()
 

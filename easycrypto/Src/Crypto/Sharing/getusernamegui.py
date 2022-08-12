@@ -9,8 +9,10 @@ USERS_LIST = os.path.join(PATH, 'users_list.txt')
 
 class GetUsername(tk.Toplevel):
 
-    def __init__(self):
+    def __init__(self, parent):
         super().__init__()
+        self.parent = parent
+        self.parent.withdraw()  # hiding parent window
 
         self.__username = None  # username string
         self.__user_object = Username(self)  # username instance (from: src/user_utils.py -> Username())
@@ -27,7 +29,7 @@ class GetUsername(tk.Toplevel):
         self.title('EasyCrypto')
         self.geometry('{}x{}+{}+{}'.format(self.WIDTH, self.HEIGHT, self.x, self.y))
         self.resizable(False, False)
-        self.iconphoto(True, tk.PhotoImage(file='res/logo.png', master=self))
+        self.iconphoto(True, tk.PhotoImage(file='resources/logo.png', master=self))
         self.protocol("WM_DELETE_WINDOW", self.correct_closing)
         self.log = Logger(__name__).default()
 
@@ -39,9 +41,10 @@ class GetUsername(tk.Toplevel):
 
         # images
 
-        self.BG_IMG = tk.PhotoImage(file='res/get_username_background.png', master=self)
-        self.GO_IMG = tk.PhotoImage(file='res/set_username_but.png', master=self)
-        self.GO_IMAGE_HOV = tk.PhotoImage(file='res/set_username_but_hovered.png', master=self)
+        self.BG_IMG = tk.PhotoImage(file='resources/get_username_background.png', master=self)
+        self.GO_IMG = tk.PhotoImage(file='resources/get_username_but.png', master=self)
+        self.GO_IMAGE_HOV = tk.PhotoImage(file='resources/get_username_but.png', master=self)
+        self.BACK_IMG = tk.PhotoImage(file='resources/backbut_little.png', master=self)
 
         # fonts and misc
 
@@ -54,7 +57,8 @@ class GetUsername(tk.Toplevel):
 
         self.bg = tk.Canvas(self, width=425, height=200)
         self.bg.create_image(214, 102, image=self.BG_IMG)
-        self.canva_id = self.bg.create_text(30, 158, text='Nickname troppo corto!', fill='red', anchor='w')
+        self.back_id = self.bg.create_image(20, 185, image=self.BACK_IMG, tags='backbut')
+        self.canva_id = self.bg.create_text(22, 153, text='Nickname troppo corto!', fill='red', anchor='w')
         self.entry = tk.Entry(self, width=19, font=self.def_font, relief='ridge', bd=2, textvariable=self.data)
         self.go_but = tk.Button(self, image=self.GO_IMG, borderwidth=0, bg='#160ca3', command=lambda: self.__go())
 
@@ -63,13 +67,13 @@ class GetUsername(tk.Toplevel):
         self.go_but.bind("<Enter>", lambda _: self.go_but.config(image=self.GO_IMAGE_HOV))
         self.go_but.bind("<Leave>", lambda _: self.go_but.config(image=self.GO_IMG))
         self.data.trace_add('write', lambda *args: Username.check_nick(self.entry.get(), False, self.bg, self.canva_id))
-        self.entry.focus()
+        self.entry.focus_force()
 
         # placing
 
         self.bg.place(x=-2, y=-2)
-        self.entry.place(x=27, y=115)
-        self.go_but.place(x=291, y=109)
+        self.entry.place(x=20, y=105)
+        self.go_but.place(x=297, y=105)
 
         # wait window event
 
@@ -82,6 +86,7 @@ class GetUsername(tk.Toplevel):
             self.log.warning("PermissionError", exc_info=True)
 
         self.__username = self.__user_object.username
+        self.parent.deiconify()
 
     # methods
 

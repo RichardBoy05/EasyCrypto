@@ -18,7 +18,7 @@ class IssueGui(tk.Toplevel):  # vedi se lasciare link github
 
         self.width = 405
         self.height = 525
-        self.icon = tk.PhotoImage(file='res/logo.png', master=self)
+        self.icon = tk.PhotoImage(file='resources/logo.png', master=self)
         self.x = int(self.winfo_screenwidth() / 2 - (self.width / 2))
         self.y = int(self.winfo_screenheight() / 2 - (self.height / 2))
         self.protocol("WM_DELETE_WINDOW", self.close)
@@ -32,15 +32,15 @@ class IssueGui(tk.Toplevel):  # vedi se lasciare link github
 
         # images
 
-        self.BG_IMG = tk.PhotoImage(file='res/issuegui_background.png', master=self)
-        self.BACKBUT_IMG = tk.PhotoImage(file='res/backbut.png', master=self)
-        self.BACKBUT_IMG_HOV = tk.PhotoImage(file='res/backbut_hovered.png', master=self)
-        self.SEND_IMG = tk.PhotoImage(file='res/send_issue_but.png', master=self)
-        self.SEND_IMG_HOV = tk.PhotoImage(file='res/send_issue_but_hovered.png', master=self)
-        self.ATTACH_IMG = tk.PhotoImage(file='res/attach_but.png', master=self)
-        self.ATTACH_IMG_HOV = tk.PhotoImage(file='res/attach_but_hovered.png', master=self)
-        self.REM_ATTACH_IMG = tk.PhotoImage(file='res/remove_attach_but.png', master=self)
-        self.REM_ATTACH_IMG_HOV = tk.PhotoImage(file='res/remove_attach_but_hovered.png', master=self)
+        self.BG_IMG = tk.PhotoImage(file='resources/issuegui_background.png', master=self)
+        self.BACK_IMG = tk.PhotoImage(file='resources/backbut.png', master=self)
+        self.BACKBUT_IMG_HOV = tk.PhotoImage(file='resources/backbut_hovered.png', master=self)
+        self.SEND_IMG = tk.PhotoImage(file='resources/send_issue_but.png', master=self)
+        self.SEND_IMG_HOV = tk.PhotoImage(file='resources/send_issue_but_hovered.png', master=self)
+        self.ATTACH_IMG = tk.PhotoImage(file='resources/attach_but.png', master=self)
+        self.ATTACH_IMG_HOV = tk.PhotoImage(file='resources/attach_but_hovered.png', master=self)
+        self.REM_ATTACH_IMG = tk.PhotoImage(file='resources/remove_attach_but.png', master=self)
+        self.REM_ATTACH_IMG_HOV = tk.PhotoImage(file='resources/remove_attach_but_hovered.png', master=self)
 
         # fonts
 
@@ -56,7 +56,7 @@ class IssueGui(tk.Toplevel):  # vedi se lasciare link github
 
         self.bg = tk.Canvas(self, width=405, height=525)
         self.bg.create_image(204, 264, image=self.BG_IMG)
-        self.back_id = self.bg.create_image(26, 503, image=self.BACKBUT_IMG, tags='backbut')
+        self.back_id = self.bg.create_image(26, 503, image=self.BACK_IMG, tags='backbut')
         self.rem_attach_id = self.bg.create_image(382, 503, image=self.REM_ATTACH_IMG, tags='rem_attach')
         self.title = tk.Entry(self, font=self.title_font, width=25, foreground='gray', relief='ridge', bd=2)
         self.tags = [' Bug', ' Aiuto', ' Domanda', ' Suggerimento']
@@ -90,7 +90,7 @@ class IssueGui(tk.Toplevel):  # vedi se lasciare link github
         self.bg.tag_bind('backbut', '<Button-1>', self.close)
         self.bg.tag_bind('rem_attach', '<Button-1>', self.rem_attach)
         self.bg.tag_bind('backbut', "<Enter>", lambda _: self.bg.itemconfig(self.back_id, image=self.BACKBUT_IMG_HOV))
-        self.bg.tag_bind('backbut', "<Leave>", lambda _: self.bg.itemconfig(self.back_id, image=self.BACKBUT_IMG))
+        self.bg.tag_bind('backbut', "<Leave>", lambda _: self.bg.itemconfig(self.back_id, image=self.BACK_IMG))
         self.bg.tag_bind('rem_attach', "<Enter>", lambda _: self.bg.itemconfig('rem_attach', image=self.REM_ATTACH_IMG_HOV))
         self.bg.tag_bind('rem_attach', "<Leave>", lambda _: self.bg.itemconfig('rem_attach', image=self.REM_ATTACH_IMG))
 

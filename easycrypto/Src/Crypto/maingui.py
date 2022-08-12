@@ -9,6 +9,7 @@ import passwordgui as pwgui
 from counter import Counter
 from rsa_utils import Share
 import rsa_encryption as rsa
+from tktooltip import ToolTip
 from tkinter import filedialog
 from issuesgui import IssueGui
 from getusernamegui import GetUsername
@@ -39,26 +40,26 @@ class MainGui(tk.Tk):
         self.title('EasyCrypto')
         self.geometry('{}x{}+{}+{}'.format(self.WIDTH, self.HEIGHT, self.x, self.y))
         self.resizable(False, False)
-        self.iconphoto(True, tk.PhotoImage(file='res/logo.png', master=self))
+        self.iconphoto(True, tk.PhotoImage(file='resources/logo.png', master=self))
         self.protocol("WM_DELETE_WINDOW", self.correct_closing)
 
         # images
 
-        self.BG_IMG = tk.PhotoImage(file='res/background.png', master=self)
-        self.ENC_IMG = tk.PhotoImage(file='res/encrypt.png', master=self)
-        self.ENC_IMG_HOV = tk.PhotoImage(file='res/encrypt_hovered.png', master=self)
-        self.DEC_IMG = tk.PhotoImage(file='res/decrypt.png', master=self)
-        self.DEC_IMG_HOV = tk.PhotoImage(file='res/decrypt_hovered.png', master=self)
-        self.SHR_IMG = tk.PhotoImage(file='res/share.png', master=self)
-        self.SHR_IMG_HOV = tk.PhotoImage(file='res/share_hovered.png', master=self)
-        self.TRS_IMG = tk.PhotoImage(file='res/translate.png', master=self)
-        self.TRS_IMG_HOV = tk.PhotoImage(file='res/translate_hovered.png', master=self)
-        self.INFO_IMG = tk.PhotoImage(file='res/info.png', master=self)
-        self.INFO_IMG_HOV = tk.PhotoImage(file='res/info_hovered.png', master=self)
-        self.GIT_IMG = tk.PhotoImage(file='res/github.png', master=self)
-        self.GIT_IMG_HOV = tk.PhotoImage(file='res/github_hovered.png', master=self)
-        self.ISSUE_IMG = tk.PhotoImage(file='res/issue_icon.png', master=self)
-        self.ISSUE_IMG_HOV = tk.PhotoImage(file='res/issue_icon_hovered.png', master=self)
+        self.BG_IMG = tk.PhotoImage(file='resources/background.png', master=self)
+        self.ENC_IMG = tk.PhotoImage(file='resources/encrypt.png', master=self)
+        self.ENC_IMG_HOV = tk.PhotoImage(file='resources/encrypt_hovered.png', master=self)
+        self.DEC_IMG = tk.PhotoImage(file='resources/decrypt.png', master=self)
+        self.DEC_IMG_HOV = tk.PhotoImage(file='resources/decrypt_hovered.png', master=self)
+        self.SHR_IMG = tk.PhotoImage(file='resources/share.png', master=self)
+        self.SHR_IMG_HOV = tk.PhotoImage(file='resources/share_hovered.png', master=self)
+        self.TRS_IMG = tk.PhotoImage(file='resources/translate.png', master=self)
+        self.TRS_IMG_HOV = tk.PhotoImage(file='resources/translate_hovered.png', master=self)
+        self.INFO_IMG = tk.PhotoImage(file='resources/info.png', master=self)
+        self.INFO_IMG_HOV = tk.PhotoImage(file='resources/info_hovered.png', master=self)
+        self.GIT_IMG = tk.PhotoImage(file='resources/github.png', master=self)
+        self.GIT_IMG_HOV = tk.PhotoImage(file='resources/github_hovered.png', master=self)
+        self.ISSUE_IMG = tk.PhotoImage(file='resources/issue_icon.png', master=self)
+        self.ISSUE_IMG_HOV = tk.PhotoImage(file='resources/issue_icon_hovered.png', master=self)
 
         # fonts and misc
 
@@ -89,6 +90,10 @@ class MainGui(tk.Tk):
 
         # tooltips
 
+        ToolTip(self.info_lab, msg='Informazioni...', delay=1.0, follow=True)
+        ToolTip(self.git_lab, msg='Sito ufficiale', delay=1.0, follow=True)
+        ToolTip(self.issue_lab, msg='Segnala', delay=1.0, follow=True)
+
         # bindings
 
         self.enc_but.bind("<Enter>", lambda _: self.enc_but.config(image=self.ENC_IMG_HOV))
@@ -99,12 +104,12 @@ class MainGui(tk.Tk):
         self.shr_but.bind("<Leave>", lambda _: self.shr_but.config(image=self.SHR_IMG))
         self.trs_but.bind("<Enter>", lambda _: self.trs_but.config(image=self.TRS_IMG_HOV))
         self.trs_but.bind("<Leave>", lambda _: self.trs_but.config(image=self.TRS_IMG))
-        self.info_lab.bind("<Enter>", lambda _: self.info_lab.config(image=self.INFO_IMG_HOV))
-        self.info_lab.bind("<Leave>", lambda _: self.info_lab.config(image=self.INFO_IMG))
-        self.git_lab.bind("<Enter>", lambda _: self.git_lab.config(image=self.GIT_IMG_HOV))
-        self.git_lab.bind("<Leave>", lambda _: self.git_lab.config(image=self.GIT_IMG))
-        self.issue_lab.bind("<Enter>", lambda _: self.issue_lab.config(image=self.ISSUE_IMG_HOV))
-        self.issue_lab.bind("<Leave>", lambda _: self.issue_lab.config(image=self.ISSUE_IMG))
+        self.info_lab.bind("<Enter>", lambda _: self.info_lab.config(image=self.INFO_IMG_HOV), add='+')
+        self.info_lab.bind("<Leave>", lambda _: self.info_lab.config(image=self.INFO_IMG), add='+')
+        self.git_lab.bind("<Enter>", lambda _: self.git_lab.config(image=self.GIT_IMG_HOV), add='+')
+        self.git_lab.bind("<Leave>", lambda _: self.git_lab.config(image=self.GIT_IMG), add='+')
+        self.issue_lab.bind("<Enter>", lambda _: self.issue_lab.config(image=self.ISSUE_IMG_HOV), add='+')
+        self.issue_lab.bind("<Leave>", lambda _: self.issue_lab.config(image=self.ISSUE_IMG), add='+')
         self.info_lab.bind("<Button-1>", lambda _: web.Browser(self.readme).search())
         self.git_lab.bind("<Button-1>", lambda _: web.Browser(self.repo).search())
         self.issue_lab.bind("<Button-1>", lambda _: IssueGui(self))
@@ -179,7 +184,7 @@ class MainGui(tk.Tk):
         if len(fixed_path) == 0:
             return
 
-        username = GetUsername().get_username()
+        username = GetUsername(self).get_username()
         if username is None:
             return
 

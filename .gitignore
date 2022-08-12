@@ -1,7 +1,7 @@
 
 *.iml
 *.xml
-src/key_crypter.py
 *.pyc
-src/safedata.py
-setup.py
+**/safedata.py
+**/key_crypter.py
+**/__init__.py

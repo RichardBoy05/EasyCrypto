@@ -76,7 +76,7 @@ class Username:
 
             current_username = Config.parse_with_key('Username', True)
             if username == current_username:
-                canva.itemconfig(canva_id, text='Questo utente sei tu! Non puoi condividere un file con te stesso!',
+                canva.itemconfig(canva_id, text='Non puoi condividere un file con te stesso!',
                                  fill='red')
                 return
 

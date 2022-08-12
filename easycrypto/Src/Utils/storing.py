@@ -116,3 +116,19 @@ class JsonFile(File):
 
         with open(self.filepath, 'w') as file:
             file.write(content)
+
+
+class Database(File):
+
+    def __init__(self, filepath):
+        super().__init__(filepath)
+
+    def connect(self):
+        pass
+
+    def create_table(self):
+        pass
+
+    def insert(self):
+        pass
+
