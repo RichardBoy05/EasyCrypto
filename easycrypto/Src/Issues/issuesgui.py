@@ -34,13 +34,13 @@ class IssueGui(tk.Toplevel):  # vedi se lasciare link github
 
         self.BG_IMG = tk.PhotoImage(file='resources/issuegui_background.png', master=self)
         self.BACK_IMG = tk.PhotoImage(file='resources/backbut.png', master=self)
-        self.BACKBUT_IMG_HOV = tk.PhotoImage(file='resources/backbut_hovered.png', master=self)
+        self.BACKBUT_IMG_HOV = tk.PhotoImage(file='resources/backbut_hov.png', master=self)
         self.SEND_IMG = tk.PhotoImage(file='resources/send_issue_but.png', master=self)
-        self.SEND_IMG_HOV = tk.PhotoImage(file='resources/send_issue_but_hovered.png', master=self)
+        self.SEND_IMG_HOV = tk.PhotoImage(file='resources/send_issue_but_hov.png', master=self)
         self.ATTACH_IMG = tk.PhotoImage(file='resources/attach_but.png', master=self)
-        self.ATTACH_IMG_HOV = tk.PhotoImage(file='resources/attach_but_hovered.png', master=self)
+        self.ATTACH_IMG_HOV = tk.PhotoImage(file='resources/attach_but_hov.png', master=self)
         self.REM_ATTACH_IMG = tk.PhotoImage(file='resources/remove_attach_but.png', master=self)
-        self.REM_ATTACH_IMG_HOV = tk.PhotoImage(file='resources/remove_attach_but_hovered.png', master=self)
+        self.REM_ATTACH_IMG_HOV = tk.PhotoImage(file='resources/remove_attach_but_hov.png', master=self)
 
         # fonts
 

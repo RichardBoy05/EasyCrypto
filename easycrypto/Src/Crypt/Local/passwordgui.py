@@ -14,9 +14,9 @@ def ask_password(main_win, to_encrypt, one_file):
 
     WINDOW_ICON = tk.PhotoImage(file='resources/logo.png', master=win)
     PADLOCK_CLOSED = tk.PhotoImage(file='resources/padlock_closed.png', master=win)
-    PADLOCK_CLOSED_HOVERED = tk.PhotoImage(file='resources/padlock_closed_hovered.png', master=win)
+    PADLOCK_CLOSED_HOVERED = tk.PhotoImage(file='resources/padlock_closed_hov.png', master=win)
     PADLOCK_OPENED = tk.PhotoImage(file='resources/padlock_opened.png', master=win)
-    PADLOCK_OPENED_HOVERED = tk.PhotoImage(file='resources/padlock_opened_hovered.png', master=win)
+    PADLOCK_OPENED_HOVERED = tk.PhotoImage(file='resources/padlock_opened_hov.png', master=win)
     SHOW = tk.PhotoImage(file='resources/show.png', master=win)
     HIDE = tk.PhotoImage(file='resources/hide.png', master=win)
 

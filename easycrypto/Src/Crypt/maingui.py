@@ -47,19 +47,19 @@ class MainGui(tk.Tk):
 
         self.BG_IMG = tk.PhotoImage(file='resources/background.png', master=self)
         self.ENC_IMG = tk.PhotoImage(file='resources/encrypt.png', master=self)
-        self.ENC_IMG_HOV = tk.PhotoImage(file='resources/encrypt_hovered.png', master=self)
+        self.ENC_IMG_HOV = tk.PhotoImage(file='resources/encrypt_hov.png', master=self)
         self.DEC_IMG = tk.PhotoImage(file='resources/decrypt.png', master=self)
-        self.DEC_IMG_HOV = tk.PhotoImage(file='resources/decrypt_hovered.png', master=self)
+        self.DEC_IMG_HOV = tk.PhotoImage(file='resources/decrypt_hov.png', master=self)
         self.SHR_IMG = tk.PhotoImage(file='resources/share.png', master=self)
-        self.SHR_IMG_HOV = tk.PhotoImage(file='resources/share_hovered.png', master=self)
+        self.SHR_IMG_HOV = tk.PhotoImage(file='resources/share_hov.png', master=self)
         self.TRS_IMG = tk.PhotoImage(file='resources/translate.png', master=self)
-        self.TRS_IMG_HOV = tk.PhotoImage(file='resources/translate_hovered.png', master=self)
+        self.TRS_IMG_HOV = tk.PhotoImage(file='resources/translate_hov.png', master=self)
         self.INFO_IMG = tk.PhotoImage(file='resources/info.png', master=self)
-        self.INFO_IMG_HOV = tk.PhotoImage(file='resources/info_hovered.png', master=self)
+        self.INFO_IMG_HOV = tk.PhotoImage(file='resources/info_hov.png', master=self)
         self.GIT_IMG = tk.PhotoImage(file='resources/github.png', master=self)
-        self.GIT_IMG_HOV = tk.PhotoImage(file='resources/github_hovered.png', master=self)
+        self.GIT_IMG_HOV = tk.PhotoImage(file='resources/github_hov.png', master=self)
         self.ISSUE_IMG = tk.PhotoImage(file='resources/issue_icon.png', master=self)
-        self.ISSUE_IMG_HOV = tk.PhotoImage(file='resources/issue_icon_hovered.png', master=self)
+        self.ISSUE_IMG_HOV = tk.PhotoImage(file='resources/issue_icon_hov.png', master=self)
 
         # fonts and misc
 

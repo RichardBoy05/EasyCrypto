@@ -1,8 +1,12 @@
+
+# built-in modules
 import os
 import json
-from logger import Logger
 from stat import S_IREAD, S_IWRITE
-from key_crypter import KeyCrypter as Kc
+
+# app modules
+from easycrypto.Src.Utils.logger import Logger
+# from key_crypter import KeyCrypter as Kc
 
 
 class Storage:
@@ -117,18 +121,4 @@ class JsonFile(File):
         with open(self.filepath, 'w') as file:
             file.write(content)
 
-
-class Database(File):
-
-    def __init__(self, filepath):
-        super().__init__(filepath)
-
-    def connect(self):
-        pass
-
-    def create_table(self):
-        pass
-
-    def insert(self):
-        pass
 

@@ -1,8 +1,12 @@
+
+# built-in modules
 import os
-import safedata
 import pyrebase
-from logger import Logger
-from alerts import connection_error_alert
+
+# app modules
+from easycrypto.Src.Utils.safedata import Safe
+from easycrypto.Src.Utils.logger import Logger
+from easycrypto.Src.Utils.alerts import connection_error_alert
 
 
 class Firebase:
@@ -12,7 +16,7 @@ class Firebase:
         self.log = Logger(__name__).default()
 
         try:
-            firebase = pyrebase.initialize_app(safedata.Safe.firebaseConfig)
+            firebase = pyrebase.initialize_app(Safe.firebaseConfig)
             storage = firebase.storage()
             self.storage = storage
         except Exception as e:

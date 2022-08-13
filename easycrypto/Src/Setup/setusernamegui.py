@@ -1,22 +1,22 @@
-import os
-import web
-import tkinter as tk
-from logger import Logger
-from user_utils import Username
 
-PATH = os.path.join(os.getenv('APPDATA'), 'EasyCrypto')
-CRYPT_PATH = os.path.join(PATH, 'crypt')
-USERS_LIST = os.path.join(PATH, 'users_list.txt')
+# built-in modules
+import os
+import tkinter as tk
+
+# app modules
+from easycrypto.Src.Utils import web
+from easycrypto.Src.Utils.logger import Logger
+from easycrypto.Src.Utils.user_utils import Username
+from easycrypto.Src.Utils.paths import ROOT,  USERS_LIST
 
 
 class SetUsernameGui(tk.Tk):
-    """ Structure of the Set Username GUI """
+    """ Defines the structure of the SetUsername GUI """
 
     def __init__(self):
         super().__init__()
 
-        self.__username = None  # username string
-        self.__user_object = Username(self)  # username instance (from: src/user_utils.py -> Username())
+        self.__username = Username(self)  # private member, instance of the Username class (Utils/users_list.py)
 
         # settings
 
@@ -28,22 +28,22 @@ class SetUsernameGui(tk.Tk):
         self.title('EasyCrypto')
         self.geometry('{}x{}+{}+{}'.format(self.WIDTH, self.HEIGHT, self.x, self.y))
         self.resizable(False, False)
-        self.iconphoto(True, tk.PhotoImage(file='resources/logo.png', master=self))
+        self.iconphoto(True, tk.PhotoImage(file=f'{ROOT}/Resources/General/logo.png', master=self))
         self.log = Logger(__name__).default()
 
         # check internet connection
 
-        if self.__user_object.get_users_list() is None:
-            self.__username = None
+        if self.__username.get_users_list() is None:
+            self.__username.username = None
             return
 
         # images
 
-        self.BG_IMG = tk.PhotoImage(file='resources/set_username_background.png', master=self)
-        self.GO_IMG = tk.PhotoImage(file='resources/set_username_but.png', master=self)
-        self.GO_IMG_HOV = tk.PhotoImage(file='resources/set_username_but_hovered.png', master=self)
-        self.GUIDE_IMG = tk.PhotoImage(file='resources/check_guide.png', master=self)
-        self.GUIDE_IMG_HOV = tk.PhotoImage(file='resources/check_guide_hovered.png', master=self)
+        self.BG_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/SetUsernameGUI/set_username_background.png', master=self)
+        self.GO_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/SetUsernameGUI/set_username_but.png', master=self)
+        self.GO_IMG_HOV = tk.PhotoImage(file=f'{ROOT}/Resources/SetUsernameGUI/set_username_but_hov.png', master=self)
+        self.GUIDE_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/SetUsernameGUI/check_guide.png', master=self)
+        self.GUIDE_IMG_HOV = tk.PhotoImage(file=f'{ROOT}/Resources/SetUsernameGUI/check_guide_hov.png', master=self)
 
         # fonts and misc
 
@@ -85,17 +85,15 @@ class SetUsernameGui(tk.Tk):
         except PermissionError:
             self.log.warning("PermissionError", exc_info=True)
 
-        self.__username = self, self.__user_object.username
-
     # methods
 
     def __go(self) -> None:
         """ Sets the nickname for the current user """
-        self.__user_object.execute(self, entry=self.text, to_set=True, canva=self.bg, canva_id=self.nik_id)
+        self.__username.execute(self, entry=self.text, to_set=True, canva=self.bg, canva_id=self.nik_id)
 
     def get_username(self) -> tuple[tk.Tk, str | None] | None:
         """ Returns the username value """
-        return self.__username
+        return self, self.__username.username
 
     @staticmethod
     def __readme_redirect() -> None:

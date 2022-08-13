@@ -8,7 +8,7 @@ from stat import S_IWRITE
 from logger import Logger
 from setup import CRYPT_PATH
 from string import ascii_letters
-from firebase import Firebase as Fb
+from easycrypto.Src.Utils.firebase import Firebase as Fb
 from cryptography.fernet import Fernet
 from cryptography.fernet import InvalidToken
 from local_crypter import avoid_same_file_name

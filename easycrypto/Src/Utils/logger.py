@@ -1,44 +1,52 @@
+
+# built-in modules
 import os
 import logging
 
+# app modules
+from easycrypto.Src.Utils.paths import SETUP_LOG, DEF_LOG
 
-# LOGGING RULES:
-
-# info = general information
-# warnings = expected exceptions
-# errors = unexpected exceptions
-# critical = exceptions that prevents the program from running any further
 
 class Logger:
-    LOGS_PATH = os.path.join(os.path.join(os.path.join(os.getenv('APPDATA'), 'EasyCrypto'), 'logs'))
-    SETUP_FILEPATH = os.path.join(LOGS_PATH, 'setup.log')
-    DEFAULT_FILEPATH = os.path.join(LOGS_PATH, 'logs.log')
-    FORMATTER = '[%(asctime)s][EasyCrypto][%(name)s] -> %(levelname)s: %(message)s'
+    """
+    Defines TWO custom loggers:
+        - Setup Logger -> logs setup operations to "setup.log" file
+        - Default Logger -> logs important actions and exceptions to "logs.log" file
 
-    def __init__(self, module):
+    LOGGING RULES:
+
+    info = general information
+    warnings = expected exceptions
+    errors = unexpected exceptions
+    critical = exceptions that prevents the program from running any further
+
+    """
+
+    def __init__(self, module: str):
         self.module = module
-        logging.basicConfig(level=logging.DEBUG, format=self.FORMATTER, filemode='a')
+        self.formatter = '[%(asctime)s][EasyCrypto][%(name)s] -> %(levelname)s: %(message)s'
+        logging.basicConfig(level=logging.DEBUG, format=self.formatter, filemode='a')
 
-    def setup(self):
+    def setup(self) -> logging.Logger:
         setuplogger = logging.getLogger(self.module)
 
-        setup_handler = logging.FileHandler(self.SETUP_FILEPATH)
-        setup_formatter = logging.Formatter(self.FORMATTER)
+        setup_handler = logging.FileHandler(SETUP_LOG)
+        setup_formatter = logging.Formatter(self.formatter)
         setup_handler.setFormatter(setup_formatter)
         setuplogger.addHandler(setup_handler)
 
         return setuplogger
 
-    def default(self):
-        if not os.path.exists(self.DEFAULT_FILEPATH):
-            open(self.DEFAULT_FILEPATH, 'w')
+    def default(self) -> logging.Logger:
+        if not os.path.exists(DEF_LOG):
+            open(DEF_LOG, 'w')
 
         logger = logging.getLogger(self.module)
-        formatter = _SeperatedExcFormatter(self.FORMATTER)
+        formatter = _SeperatedExcFormatter(self.formatter)
 
         logger.propagate = False
 
-        setup_handler = logging.FileHandler(self.DEFAULT_FILEPATH)
+        setup_handler = logging.FileHandler(DEF_LOG)
         setup_handler.setFormatter(formatter)
 
         if not logger.hasHandlers():

@@ -1,148 +1,168 @@
-import os
-import sys
-import shutil
-import safedata
-from storing import File
-from logger import Logger
-from config import Config
-from firebase import Firebase as Fb
-from setusernamegui import SetUsernameGui
+# external modules
+
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-PATH = os.path.join(os.getenv('APPDATA'), 'EasyCrypto')
-CRYPT_PATH = os.path.join(PATH, 'crypt')
-STORAGE_FILE = os.path.join(CRYPT_PATH, 'store.json')
-CONFIG_FILE = os.path.join(PATH, 'config.ini')
-LOGS_PATH = os.path.join(PATH, 'logs')
+# built-in modules
+import os
+import sys
+import shutil
+from tkinter import Tk
+
+# app modules
+from easycrypto.Src.Setup.config import Config
+from easycrypto.Src.Utils.safedata import Safe
+from easycrypto.Src.Utils.storing import File
+from easycrypto.Src.Utils.logger import Logger
+from easycrypto.Src.Utils.database import Database
+from easycrypto.Src.Utils.firebase import Firebase as Fb
+from easycrypto.Src.Setup.setusernamegui import SetUsernameGui
+from easycrypto.Src.Utils.paths import APP, LOGS, CRYPT, CONFIG_FILE, DATABASE, PRIVATE_KEY, PUBLIC_KEY
 
 
-def setup():
-    if os.path.exists(CONFIG_FILE):
-        return False
+class Setup:
+    """ Sets up the program environment """
 
-    log = local_setup()
+    def __init__(self):
 
-    log.info('Asking username...')
-    result = SetUsernameGui().get_username()
+        # check
+        if os.path.exists(CONFIG_FILE):  # returns if the program is not being run for the first time
+            return
+        self.log = None
 
-    if result is None or result[1] is None:
-        shutdown(log)
+        # local setup
+        self.local_setup()
 
-    win, username = result
+        # username setup
+        result = SetUsernameGui().get_username()
+        if result is None or result[1] is None:
+            self.shutdown()
 
-    log.info(f'Username successfully set: {username}')
+        win, username = result  # unpacking SetUsernameGUI output: win -> parent window instance, username -> nickname
+        self.log.info(f'Username successfully set: {username}') # noqa (suppress warning)
 
-    configuration(username, log)
-    generate_keys(log)
-    upload_public_key(win, username, log)
+        # configuration
+        self.configuration(username)
 
+        # private and public key generation
+        self.generate_keys()
 
-def local_setup():
-    if os.path.exists(PATH):
-        shutil.rmtree(PATH)
+        # public key upload to the server
+        self.upload_public_key(win, username)
 
-    os.mkdir(PATH)
-    os.mkdir(LOGS_PATH)
+    def local_setup(self) -> None:
+        """ Creates the local environement in the APPDATA folder """
 
-    log = Logger(__name__).setup()
+        if os.path.exists(APP):
+            shutil.rmtree(APP)
 
-    log.info('Setup initialized!')
-    log.info(f'Directory created: {PATH}')
-    log.info(f'Directory created: {LOGS_PATH}')
+        os.mkdir(APP)
+        os.mkdir(LOGS)
 
-    os.mkdir(CRYPT_PATH)
-    log.info(f'Directory created: {CRYPT_PATH}')
-    os.system("attrib +h " + CRYPT_PATH)
-    log.info(f'Directory hidden: {CRYPT_PATH}')
+        self.log = Logger(__name__).setup()  # logger initialization (couldn't be done before due to directories issues)
 
-    open(STORAGE_FILE, 'w')
-    log.info(f'File created: {STORAGE_FILE}')
-    File(STORAGE_FILE).lock_file()
-    log.info(f'File locked: {STORAGE_FILE}')
+        self.log.info('Setup initialized!')
+        self.log.info(f'Directory created: {APP}')
+        self.log.info(f'Directory created: {LOGS}')
 
-    open(CONFIG_FILE, 'w')
-    log.info(f'File created: {CONFIG_FILE}')
+        os.mkdir(CRYPT)
+        self.log.info(f'Directory created: {CRYPT}')
+        os.system("attrib +h " + CRYPT)
+        self.log.info(f'Directory hidden: {CRYPT}')
 
-    Config.initialize()
-    log.info('Configuration file initialized!')
+        open(CONFIG_FILE, 'w')
+        self.log.info(f'File created: {CONFIG_FILE}')
 
-    return log
+        Database().create_main_table()
+        self.log.info(f'File created: {DATABASE}')
+        self.log.info(f'Created new table "encryption" in {DATABASE}')
+        self.log.info(f'File locked: {DATABASE}')
 
+        Config.initialize()
+        self.log.info('Configuration file initialized!')
+        self.log.info('Asking username...')
 
-def configuration(username, log):
-    Config.add_pair(key='Username', value=username)
-    log.info(f'New key-value pair added in the configuration file: Username = {username}')
-    Config.add_pair(key='TotalEncryptions', value='0')
-    log.info(f'New key-value pair added in the configuration file: TotalEncryptions = 0')
-    Config.add_pair(key='TotalDecryptions', value='0')
-    log.info(f'New key-value pair added in the configuration file: TotalDecryptions = 0')
-    Config.add_pair(key='TotalShares', value='0')
-    log.info(f'New key-value pair added in the configuration file: TotalShares = 0')
-    Config.add_pair(key='TotalTranslations', value='0')
-    log.info(f'New key-value pair added in the configuration file: TotalTranslations = 0')
+    def configuration(self, username: str) -> None:
+        """ Appends key-value pairs to the config file """
 
-    File(CONFIG_FILE).lock_file()
-    log.info('Configuration file locked!')
-    log.info('Configuration file closed!')
+        Config.add_pair(key='Username', value=username)
+        self.log.info(f'New key-value pair added in the configuration file: Username = {username}')
+        Config.add_pair(key='TotalEncryptions', value='0')
+        self.log.info(f'New key-value pair added in the configuration file: TotalEncryptions = 0')
+        Config.add_pair(key='TotalDecryptions', value='0')
+        self.log.info(f'New key-value pair added in the configuration file: TotalDecryptions = 0')
+        Config.add_pair(key='TotalShares', value='0')
+        self.log.info(f'New key-value pair added in the configuration file: TotalShares = 0')
+        Config.add_pair(key='TotalTranslations', value='0')
+        self.log.info(f'New key-value pair added in the configuration file: TotalTranslations = 0')
 
+        File(CONFIG_FILE).lock_file()
+        self.log.info('Configuration file locked!')
+        self.log.info('Configuration file closed!')
 
-def generate_keys(log):
-    log.info('Generating private key...')
-    private_key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=4096,
-        backend=default_backend()
-    )
+    def generate_keys(self) -> None:
+        """ Generates and writes to file the user's private and public keys """
 
-    log.info('Private key serialization...')
-    priv_pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.BestAvailableEncryption(safedata.Safe.password)
-    )
+        # private key
+        self.log.info('Generating private key...')
+        private_key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=4096,
+            backend=default_backend()
+        )
 
-    with open(CRYPT_PATH + '\\private_key.pem', 'wb') as f:
-        f.write(priv_pem)
-    File(CRYPT_PATH + '\\private_key.pem').lock_file()
-    log.info('Private key successfully generated!')
+        self.log.info('Private key serialization...')
+        priv_pem = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.BestAvailableEncryption(Safe.password)
+        )
 
-    log.info('Generating public key...')
-    public_key = private_key.public_key()
+        with open(PRIVATE_KEY, 'wb') as f:
+            f.write(priv_pem)
+        File(PRIVATE_KEY).lock_file()
+        self.log.info('Private key successfully generated!')
 
-    log.info('Public key serialization...')
-    pub_pem = public_key.public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
-    )
+        # public key
+        self.log.info('Generating public key...')
+        public_key = private_key.public_key()
 
-    with open(CRYPT_PATH + '\\public_key.pem', 'wb') as f:
-        f.write(pub_pem)
-    log.info('Public key successfully generated!')
+        self.log.info('Public key serialization...')
+        pub_pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
 
+        with open(PUBLIC_KEY, 'wb') as f:
+            f.write(pub_pem)
+        self.log.info('Public key successfully generated!')
 
-def upload_public_key(win, username, log):
-    log.info('Connecting to the server...')
+    def upload_public_key(self, win: Tk, username: str) -> None:
+        """ Uploads the public key to the EasyCrypto server """
 
-    public_key_file = CRYPT_PATH + '\\public_key.pem'
+        self.log.info('Connecting to the server...')
 
-    if not Fb(win).upload('Users/' + username + '.pem', public_key_file):
-        log.critical('Public key could not be uploaded to the server...')
-        shutdown(log)
+        if not Fb(win).upload(f'Users/{username}.pem', PUBLIC_KEY):
+            self.log.critical('Public key could not be uploaded to the server...')
+            self.shutdown()
 
-    File(public_key_file).lock_file()
-    log.info('Public key successfully uploaded to the server!')
-    log.info('Setup successfully COMPLETED!')
+        File(PUBLIC_KEY).lock_file()
+        self.log.info('Public key successfully uploaded to the server!')
+        self.log.info('Setup successfully COMPLETED!')
 
+    def shutdown(self) -> None:
+        """
+        Stops the program and removes its environment, which is used when the installation process encounters an error.
+        If a file is still open and cannot be deleted, it will remain, but the program already handles this problem
+        """
 
-def shutdown(log):
-    log.critical('Deleting environment...')
+        self.log.critical('Deleting environment...')
 
-    if os.path.exists(PATH) and os.path.exists(STORAGE_FILE) and os.path.exists(CONFIG_FILE):
-        File(os.path.join(STORAGE_FILE)).unlock_file()
-        File(os.path.join(CONFIG_FILE)).unlock_file()
+        if os.path.exists(APP) and os.path.exists(DATABASE) and os.path.exists(CONFIG_FILE):
+            File(os.path.join(DATABASE)).unlock_file()
+            File(os.path.join(CONFIG_FILE)).unlock_file()
 
-        shutil.rmtree(PATH, ignore_errors=True)
+            shutil.rmtree(APP, ignore_errors=True)
 
-    sys.exit()
+        sys.exit()
