@@ -4,7 +4,7 @@ import os
 import datetime as dt
 
 # app modules
-from easycrypto.Src.Utils.storing import File
+from easycrypto.Src.Utils.file_handler import File
 from easycrypto.Src.Utils.paths import CONFIG_FILE
 
 
@@ -58,7 +58,7 @@ class Config:
             pair = line.split(cls.SEPARATOR, 2)
             if pair[0] == key:
 
-                output = pair[1] if get_value else lines, index
+                output = pair[1] if get_value else (lines, index)
                 return output
 
         return None  # key not found
@@ -79,10 +79,10 @@ class Config:
         content[line - 1] = f'{key} = {new_value}'
         content[line] = f'; {dt.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")}'
 
-        File(CONFIG_FILE).unlock_file()
+        File(CONFIG_FILE).unlock()
         with open(CONFIG_FILE, 'w') as file:  # overwrites the file with the new content
             file.writelines(f'{i}\n' for i in content)
-        File(CONFIG_FILE).lock_file()
+        File(CONFIG_FILE).lock()
 
         return True
 

@@ -1,12 +1,17 @@
+# external modules
+import requests
+from github import Github
+
+# built-in modules
 import json
 import uuid
-import requests
-import alerts as alt
 import tkinter as tk
-from github import Github
-from logger import Logger
 from datetime import datetime
-from safedata import Safe as Sd
+
+# app modules
+from easycrypto.Src.Utils import alerts as alt
+from easycrypto.Src.Utils.logger import Logger
+from easycrypto.Src.Utils.safedata import Safe
 
 
 class Issue:
@@ -17,7 +22,7 @@ class Issue:
 
         self.OWNER = 'RichardBoy05'
         self.REPO = 'EasyCrypto'
-        self.TOKEN = Sd.get_token()
+        self.TOKEN = Safe.get_token()
 
         self.url = f'https://api.github.com/repos/{self.OWNER}/{self.REPO}/import/issues'
         self.headers = {

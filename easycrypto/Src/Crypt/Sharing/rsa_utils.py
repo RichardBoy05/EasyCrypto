@@ -1,20 +1,24 @@
-import os
-import json
-import string
-import alerts as alt
-import random as rand
-from safedata import Safe
-from stat import S_IWRITE
-from logger import Logger
-from setup import CRYPT_PATH
-from string import ascii_letters
-from easycrypto.Src.Utils.firebase import Firebase as Fb
+# external modules
 from cryptography.fernet import Fernet
 from cryptography.fernet import InvalidToken
-from local_crypter import avoid_same_file_name
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes, serialization
+
+# built-in modules
+import os
+import json
+import string
+import random as rand
+from stat import S_IWRITE
+
+# app modules
+from easycrypto.Src.Utils.paths import CRYPT
+from easycrypto.Src.Utils.logger import Logger
+from easycrypto.Src.Utils.safedata import Safe
+from easycrypto.Src.Utils import alerts as alt
+from easycrypto.Src.Utils.firebase import Firebase as Fb
+from easycrypto.Src.Crypt.Local.local_crypter import avoid_same_file_name
 
 
 class RsaUtils:
@@ -54,7 +58,7 @@ class Share(RsaUtils):
         return False
 
     def check_duped_filenames(self, location):
-        if not Fb(self.win).download(location, CRYPT_PATH, 'temp.txt'):
+        if not Fb(self.win).download(location, CRYPT, 'temp.txt'):
             return None
 
         if os.path.exists(os.path.join(CRYPT_PATH, 'temp.txt')):
@@ -65,7 +69,7 @@ class Share(RsaUtils):
 
     def get_public_key(self, username):
         key_path = os.path.join(CRYPT_PATH, f'{username}_publickey.pem')
-        if not Fb(self.win).download(f'Users/{username}.pem', CRYPT_PATH, f'{username}_publickey.pem'):
+        if not Fb(self.win).download(f'Users/{username}.pem', CRYPT, f'{username}_publickey.pem'):
             return None
 
         with open(key_path, "rb") as key_file:
@@ -121,7 +125,7 @@ class Share(RsaUtils):
 
     @staticmethod
     def change_name(extension):
-        return ''.join(rand.choice(ascii_letters) for _ in range(15)) + extension
+        return ''.join(rand.choice(string.ascii_letters) for _ in range(15)) + extension
 
     @staticmethod
     def encrypt_key(key, public_key):
@@ -207,7 +211,7 @@ class Translate(RsaUtils):
         with open(CRYPT_PATH + "\\private_key.pem", "rb") as key_file:
             private_key = serialization.load_pem_private_key(
                 key_file.read(),
-                password=Safe.password,
+                password=Safe.get_privkey_password(),
                 backend=default_backend()
             )
 

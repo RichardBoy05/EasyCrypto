@@ -16,7 +16,7 @@ class Firebase:
         self.log = Logger(__name__).default()
 
         try:
-            firebase = pyrebase.initialize_app(Safe.firebaseConfig)
+            firebase = pyrebase.initialize_app(Safe.get_firebase_config())
             storage = firebase.storage()
             self.storage = storage
         except Exception as e:

@@ -54,7 +54,7 @@ def different_passwords_alert(win):
 
 
 def invalid_password(win, filename):
-    messagebox.showerror("Error!", f"La password del file {filename} non è corretta!", parent=win)
+    messagebox.showerror("Error!", f"La password del file '{filename}' non è corretta!", parent=win)
 
 
 def not_shared_alert(win):
@@ -112,3 +112,9 @@ def missing_text_alert(win):
 
 def missing_attachments(win):
     return messagebox.askyesno("Warning", "Non hai selezionato nessun allegato! Sicuro di voler procedere?", parent=win)
+
+
+def corrupted_database(win, e):
+    messagebox.showerror("Error!", "Il database locale è stato corrotto!\n"
+                                   "Segnala subito il problema tramite l'apposita sezione in basso a destra!\n\n"
+                                   f"Ulteriori informazioni: \n{e}", parent=win)

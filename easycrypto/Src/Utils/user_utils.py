@@ -5,7 +5,7 @@ import string
 import winsound as sound
 
 # app modules
-from easycrypto.Src.Setup.config import Config
+from easycrypto.Src.Utils.config import Config
 from easycrypto.Src.Utils.firebase import Firebase as Fb
 
 PATH = os.path.join(os.getenv('APPDATA'), 'EasyCrypto')

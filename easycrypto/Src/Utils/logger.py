@@ -1,4 +1,3 @@
-
 # built-in modules
 import os
 import logging
@@ -18,46 +17,46 @@ class Logger:
     info = general information
     warnings = expected exceptions
     errors = unexpected exceptions
-    critical = exceptions that prevents the program from running any further
+    critical = exceptions that prevent further execution of the program
 
     """
 
     def __init__(self, module: str):
         self.module = module
-        self.formatter = '[%(asctime)s][EasyCrypto][%(name)s] -> %(levelname)s: %(message)s'
-        logging.basicConfig(level=logging.DEBUG, format=self.formatter, filemode='a')
+        self.separator = '\n----------------------------------------------------------------------------------\n\n'
+
+        self.setup_formatter = '[%(asctime)s][EasyCrypto][%(name)s] -> %(levelname)s: %(message)s'
+        self.def_formatter = f'{self.separator}[%(asctime)s][EasyCrypto][%(name)s] -> %(levelname)s: %(message)s'
+
+        logging.basicConfig(level=logging.DEBUG, format=self.setup_formatter, filemode='a')
 
     def setup(self) -> logging.Logger:
-        setuplogger = logging.getLogger(self.module)
-
-        setup_handler = logging.FileHandler(SETUP_LOG)
-        setup_formatter = logging.Formatter(self.formatter)
-        setup_handler.setFormatter(setup_formatter)
-        setuplogger.addHandler(setup_handler)
-
-        return setuplogger
-
-    def default(self) -> logging.Logger:
-        if not os.path.exists(DEF_LOG):
-            open(DEF_LOG, 'w')
+        """ Creates and returns a custom logger to log setup operations -> setup.log """
 
         logger = logging.getLogger(self.module)
-        formatter = _SeperatedExcFormatter(self.formatter)
 
-        logger.propagate = False
-
-        setup_handler = logging.FileHandler(DEF_LOG)
-        setup_handler.setFormatter(formatter)
-
-        if not logger.hasHandlers():
-            logger.addHandler(setup_handler)
+        handler = logging.FileHandler(SETUP_LOG)
+        formatter = logging.Formatter(self.setup_formatter)
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
 
         return logger
 
+    def default(self) -> logging.Logger:
+        """ Creates and returns a custom logger to log important operations and exception tracebacks -> logs.log """
 
-class _SeperatedExcFormatter(logging.Formatter):  # source: https://stackoverflow.com/a/59092065/14554798
-    def formatException(self, exc_info):
-        result = super().formatException(exc_info)
-        if exc_info:
-            result = result + "\n\n----------------------------------------------------------------------------------\n\n"
-        return result
+        if not os.path.exists(DEF_LOG):
+            with open(DEF_LOG, 'w') as file:
+                file.write('[EasyCrypto Logs]\n')
+
+        logger = logging.getLogger(__name__)
+
+        handler = logging.FileHandler(DEF_LOG)
+        formatter = logging.Formatter(self.def_formatter)
+        handler.setFormatter(formatter)
+
+        if len(logger.handlers) == 0:  # avoids adding multiple handlers
+            logger.addHandler(handler)
+
+        return logger
+

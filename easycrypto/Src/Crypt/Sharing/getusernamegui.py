@@ -1,7 +1,11 @@
+# built-in modules
 import os
 import tkinter as tk
-from logger import Logger
-from user_utils import Username
+
+# app modules
+from easycrypto.Src.Utils.paths import ROOT
+from easycrypto.Src.Utils.logger import Logger
+from easycrypto.Src.Utils.user_utils import Username
 
 PATH = os.path.join(os.getenv('APPDATA'), 'EasyCrypto')
 USERS_LIST = os.path.join(PATH, 'users_list.txt')
@@ -29,7 +33,7 @@ class GetUsername(tk.Toplevel):
         self.title('EasyCrypto')
         self.geometry('{}x{}+{}+{}'.format(self.WIDTH, self.HEIGHT, self.x, self.y))
         self.resizable(False, False)
-        self.iconphoto(True, tk.PhotoImage(file='resources/logo.png', master=self))
+        self.iconphoto(True, tk.PhotoImage(file=f'{ROOT}/Resources/General/logo.png', master=self))
         self.protocol("WM_DELETE_WINDOW", self.correct_closing)
         self.log = Logger(__name__).default()
 
@@ -41,10 +45,10 @@ class GetUsername(tk.Toplevel):
 
         # images
 
-        self.BG_IMG = tk.PhotoImage(file='resources/get_username_background.png', master=self)
-        self.GO_IMG = tk.PhotoImage(file='resources/get_username_but.png', master=self)
-        self.GO_IMAGE_HOV = tk.PhotoImage(file='resources/get_username_but.png', master=self)
-        self.BACK_IMG = tk.PhotoImage(file='resources/backbut_little.png', master=self)
+        self.BG_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/GetUsernameGUI/get_username_background.png', master=self)
+        self.GO_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/GetUsernameGUI/get_username_but.png', master=self)
+        self.GO_IMAGE_HOV = tk.PhotoImage(file=f'{ROOT}/Resources/GetUsernameGUI/get_username_but.png', master=self)
+        self.BACK_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/GetUsernameGUI/backbut_little.png', master=self)
 
         # fonts and misc
 

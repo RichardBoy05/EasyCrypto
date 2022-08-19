@@ -1,10 +1,11 @@
+# built-in modules
 import os
 from stat import S_IREAD
-from logger import Logger
-from safedata import Safe
-from rsa_utils import Share
-from rsa_utils import Translate
-from alerts import duplicated_share_alert
+
+# app modules
+from easycrypto.Src.Utils.logger import Logger
+from easycrypto.Src.Utils import alerts as alt
+from easycrypto.Src.Crypt.Sharing.rsa_utils import Share, Translate
 
 EXTENSION = '.ezcrypto'
 
@@ -19,7 +20,7 @@ def share(win, path, username):
 
     if duplicated is None or duplicated:
         if duplicated:
-            duplicated_share_alert(win, username, name)
+            alt.duplicated_share_alert(win, username, name)
 
         return False
 

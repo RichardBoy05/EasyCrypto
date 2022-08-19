@@ -10,10 +10,9 @@
 
 # app modules
 from easycrypto.Src.Setup.setup import Setup
-# from easycrypto.Src.Crypt.maingui import init
+from easycrypto.Src.Crypt.maingui import MainGui
 
 if __name__ == '__main__':
 
     Setup()  # sets up local and online environments for the program
-
-    # init()  # initializes the main window
+    MainGui()  # initializes the main window

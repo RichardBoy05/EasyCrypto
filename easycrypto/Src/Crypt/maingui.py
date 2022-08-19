@@ -1,23 +1,27 @@
+# built-in modules
 import os
-import web
-import alerts as alt
 import tkinter as tk
-from config import Config
 from typing import Literal
-import local_crypter as lc
-import passwordgui as pwgui
-from counter import Counter
-from rsa_utils import Share
-import rsa_encryption as rsa
 from tktooltip import ToolTip
 from tkinter import filedialog
-from issuesgui import IssueGui
-from getusernamegui import GetUsername
+
+# app modules
+from easycrypto.Src.Utils import web
+from easycrypto.Src.Utils.paths import ROOT
+from easycrypto.Src.Utils.config import Config
+from easycrypto.Src.Utils import alerts as alt
+from easycrypto.Src.Utils.counter import Counter
+from easycrypto.Src.Crypt.Local.crypter import Crypter
+from easycrypto.Src.Crypt.Sharing.rsa_utils import Share
+from easycrypto.Src.Crypt.Local import passwordgui as pwgui
+from easycrypto.Src.Crypt.Sharing import rsa_encryption as rsa
+from easycrypto.Src.Crypt.Sharing.getusernamegui import GetUsername
+from easycrypto.Src.Issues.issuesgui import IssueGui
 
 
 class MainGui(tk.Tk):
     """
-    Structure of the EasyCrypto Main GUI
+    Defines the structure of the EasyCrypto Main GUI
 
     Naming conventions:
     - Enc -> Encrypt
@@ -40,26 +44,26 @@ class MainGui(tk.Tk):
         self.title('EasyCrypto')
         self.geometry('{}x{}+{}+{}'.format(self.WIDTH, self.HEIGHT, self.x, self.y))
         self.resizable(False, False)
-        self.iconphoto(True, tk.PhotoImage(file='resources/logo.png', master=self))
+        self.iconphoto(True, tk.PhotoImage(file=f'{ROOT}/Resources/General/logo.png', master=self))
         self.protocol("WM_DELETE_WINDOW", self.correct_closing)
 
         # images
 
-        self.BG_IMG = tk.PhotoImage(file='resources/background.png', master=self)
-        self.ENC_IMG = tk.PhotoImage(file='resources/encrypt.png', master=self)
-        self.ENC_IMG_HOV = tk.PhotoImage(file='resources/encrypt_hov.png', master=self)
-        self.DEC_IMG = tk.PhotoImage(file='resources/decrypt.png', master=self)
-        self.DEC_IMG_HOV = tk.PhotoImage(file='resources/decrypt_hov.png', master=self)
-        self.SHR_IMG = tk.PhotoImage(file='resources/share.png', master=self)
-        self.SHR_IMG_HOV = tk.PhotoImage(file='resources/share_hov.png', master=self)
-        self.TRS_IMG = tk.PhotoImage(file='resources/translate.png', master=self)
-        self.TRS_IMG_HOV = tk.PhotoImage(file='resources/translate_hov.png', master=self)
-        self.INFO_IMG = tk.PhotoImage(file='resources/info.png', master=self)
-        self.INFO_IMG_HOV = tk.PhotoImage(file='resources/info_hov.png', master=self)
-        self.GIT_IMG = tk.PhotoImage(file='resources/github.png', master=self)
-        self.GIT_IMG_HOV = tk.PhotoImage(file='resources/github_hov.png', master=self)
-        self.ISSUE_IMG = tk.PhotoImage(file='resources/issue_icon.png', master=self)
-        self.ISSUE_IMG_HOV = tk.PhotoImage(file='resources/issue_icon_hov.png', master=self)
+        self.BG_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/MainGUI/background.png', master=self)
+        self.ENC_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/MainGUI/encrypt.png', master=self)
+        self.ENC_IMG_HOV = tk.PhotoImage(file=f'{ROOT}/Resources/MainGUI/encrypt_hov.png', master=self)
+        self.DEC_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/MainGUI/decrypt.png', master=self)
+        self.DEC_IMG_HOV = tk.PhotoImage(file=f'{ROOT}/Resources/MainGUI/decrypt_hov.png', master=self)
+        self.SHR_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/MainGUI/share.png', master=self)
+        self.SHR_IMG_HOV = tk.PhotoImage(file=f'{ROOT}/Resources/MainGUI/share_hov.png', master=self)
+        self.TRS_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/MainGUI/translate.png', master=self)
+        self.TRS_IMG_HOV = tk.PhotoImage(file=f'{ROOT}/Resources/MainGUI/translate_hov.png', master=self)
+        self.INFO_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/MainGUI/info.png', master=self)
+        self.INFO_IMG_HOV = tk.PhotoImage(file=f'{ROOT}/Resources/MainGUI/info_hov.png', master=self)
+        self.GIT_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/MainGUI/github.png', master=self)
+        self.GIT_IMG_HOV = tk.PhotoImage(file=f'{ROOT}/Resources/MainGUI/github_hov.png', master=self)
+        self.ISSUE_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/MainGUI/issue_icon.png', master=self)
+        self.ISSUE_IMG_HOV = tk.PhotoImage(file=f'{ROOT}/Resources/MainGUI/issue_icon_hov.png', master=self)
 
         # fonts and misc
 
@@ -152,11 +156,11 @@ class MainGui(tk.Tk):
         if not password:
             return
 
-        has_been_encrypted = [lc.encrypt(self, path=i, pw=password.encode('utf-8'), keep_copy=keepcopy) for i in path]
+        has_been_encrypted = [Crypter(i, password.encode('utf-8'), keepcopy, self).encrypt() for i in path]
 
         for i in has_been_encrypted:
             if i:
-                Counter(self, self.bg.itemcget(self.enc_count, 'text'), self.enc_count).update('TotalEncryptions')
+                Counter(self.bg, self.enc_count, 'TotalEncryptions').update()
 
         if all(has_been_encrypted):
             alt.encrypted_successfully_alert(self, len(path))
@@ -168,11 +172,11 @@ class MainGui(tk.Tk):
         if not password:
             return
 
-        has_been_decrypted = [lc.decrypt(self, path=i, pw=password.encode('utf-8'), keep_copy=keepcopy) for i in path]
+        has_been_decrypted = [Crypter(i, password.encode('utf-8'), keepcopy, self).decrypt() for i in path]
 
         for i in has_been_decrypted:
             if i:
-                Counter(self, self.bg.itemcget(self.dec_count, 'text'), self.dec_count).update('TotalDecryptions')
+                Counter(self.bg, self.dec_count, 'TotalDecryptions').update()
 
         if all(has_been_decrypted):
             alt.decrypted_successfully_alert(self, len(path))
@@ -192,7 +196,7 @@ class MainGui(tk.Tk):
 
         for i in has_been_shared:
             if i:
-                Counter(self, self.bg.itemcget(self.shr_count, 'text'), self.shr_count).update('TotalShares')
+                Counter(self.bg, self.shr_count, 'TotalShares').update()
 
         if all(has_been_shared):
             alt.shared_successfully_alert(self, len(fixed_path))
@@ -204,7 +208,7 @@ class MainGui(tk.Tk):
 
         for i in has_been_translated:
             if i:
-                Counter(self, self.bg.itemcget(self.trs_count, 'text'), self.trs_count).update('TotalTranslations')
+                Counter(self.bg, self.trs_count, 'TotalTranslations').update()
 
         if all(has_been_translated):
             alt.translated_successfully_alert(self, len(path))
@@ -217,7 +221,3 @@ class MainGui(tk.Tk):
             os.remove(os.path.join(CRYPT_PATH, "firstboot"))
 
         self.destroy()
-
-
-def init():
-    MainGui()

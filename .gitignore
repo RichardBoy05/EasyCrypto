@@ -3,5 +3,4 @@
 *.xml
 *.pyc
 **/safedata.py
-**/key_crypter.py
 **/__init__.py

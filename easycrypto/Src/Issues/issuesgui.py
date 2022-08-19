@@ -1,14 +1,19 @@
-import tkinter.ttk
+# built-in modules
+
 import tkinter as tk
-import alerts as alt
-from issues import Issue
-from typing import Literal
+import tkinter.ttk
 import tkinter.font as tkfont
-from tktooltip import ToolTip
 from tkinter import filedialog
+from tktooltip import ToolTip
+from typing import Literal
+
+# app modules
+from easycrypto.Src.Utils.paths import ROOT
+from easycrypto.Src.Utils import alerts as alt
+from easycrypto.Src.Issues.issues import Issue
 
 
-class IssueGui(tk.Toplevel):  # vedi se lasciare link github
+class IssueGui(tk.Toplevel):  # vedi se lasciare link github (fallo assolutamente in caso problmei sqlite)
     def __init__(self, win):
         super().__init__()
         self.win = win
@@ -18,7 +23,7 @@ class IssueGui(tk.Toplevel):  # vedi se lasciare link github
 
         self.width = 405
         self.height = 525
-        self.icon = tk.PhotoImage(file='resources/logo.png', master=self)
+        self.icon = tk.PhotoImage(file=f'{ROOT}/Resources/General/logo.png', master=self)
         self.x = int(self.winfo_screenwidth() / 2 - (self.width / 2))
         self.y = int(self.winfo_screenheight() / 2 - (self.height / 2))
         self.protocol("WM_DELETE_WINDOW", self.close)
@@ -32,15 +37,15 @@ class IssueGui(tk.Toplevel):  # vedi se lasciare link github
 
         # images
 
-        self.BG_IMG = tk.PhotoImage(file='resources/issuegui_background.png', master=self)
-        self.BACK_IMG = tk.PhotoImage(file='resources/backbut.png', master=self)
-        self.BACKBUT_IMG_HOV = tk.PhotoImage(file='resources/backbut_hov.png', master=self)
-        self.SEND_IMG = tk.PhotoImage(file='resources/send_issue_but.png', master=self)
-        self.SEND_IMG_HOV = tk.PhotoImage(file='resources/send_issue_but_hov.png', master=self)
-        self.ATTACH_IMG = tk.PhotoImage(file='resources/attach_but.png', master=self)
-        self.ATTACH_IMG_HOV = tk.PhotoImage(file='resources/attach_but_hov.png', master=self)
-        self.REM_ATTACH_IMG = tk.PhotoImage(file='resources/remove_attach_but.png', master=self)
-        self.REM_ATTACH_IMG_HOV = tk.PhotoImage(file='resources/remove_attach_but_hov.png', master=self)
+        self.BG_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/IssuesGUI/issuegui_background.png', master=self)
+        self.BACK_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/IssuesGUI/backbut.png', master=self)
+        self.BACKBUT_IMG_HOV = tk.PhotoImage(file=f'{ROOT}/Resources/IssuesGUI/backbut_hov.png', master=self)
+        self.SEND_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/IssuesGUI/send_issue_but.png', master=self)
+        self.SEND_IMG_HOV = tk.PhotoImage(file=f'{ROOT}/Resources/IssuesGUI/send_issue_but_hov.png', master=self)
+        self.ATTACH_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/IssuesGUI/attach_but.png', master=self)
+        self.ATTACH_IMG_HOV = tk.PhotoImage(file=f'{ROOT}/Resources/IssuesGUI/attach_but_hov.png', master=self)
+        self.REM_ATTACH_IMG = tk.PhotoImage(file=f'{ROOT}/Resources/IssuesGUI/remove_attach_but.png', master=self)
+        self.REM_ATTACH_IMG_HOV = tk.PhotoImage(file=f'{ROOT}/Resources/IssuesGUI/remove_attach_but_hov.png', master=self)
 
         # fonts
 

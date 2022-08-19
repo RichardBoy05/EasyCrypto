@@ -1,6 +1,10 @@
+# built-in modules
 import tkinter as tk
-from logger import Logger
-from alerts import empty_box_alert, different_passwords_alert
+
+# app modules
+from easycrypto.Src.Utils.paths import ROOT
+from easycrypto.Src.Utils.logger import Logger
+from easycrypto.Src.Utils import alerts as alt
 
 
 def ask_password(main_win, to_encrypt, one_file):
@@ -12,13 +16,13 @@ def ask_password(main_win, to_encrypt, one_file):
     WIDTH = 265
     HEIGHT = 145
 
-    WINDOW_ICON = tk.PhotoImage(file='resources/logo.png', master=win)
-    PADLOCK_CLOSED = tk.PhotoImage(file='resources/padlock_closed.png', master=win)
-    PADLOCK_CLOSED_HOVERED = tk.PhotoImage(file='resources/padlock_closed_hov.png', master=win)
-    PADLOCK_OPENED = tk.PhotoImage(file='resources/padlock_opened.png', master=win)
-    PADLOCK_OPENED_HOVERED = tk.PhotoImage(file='resources/padlock_opened_hov.png', master=win)
-    SHOW = tk.PhotoImage(file='resources/show.png', master=win)
-    HIDE = tk.PhotoImage(file='resources/hide.png', master=win)
+    WINDOW_ICON = tk.PhotoImage(file=f'{ROOT}/Resources/General/logo.png', master=win)
+    PADLOCK_CLOSED = tk.PhotoImage(file=f'{ROOT}/Resources/PwGUI/padlock_closed.png', master=win)
+    PADLOCK_CLOSED_HOVERED = tk.PhotoImage(file=f'{ROOT}/Resources/PwGUI/padlock_closed_hov.png', master=win)
+    PADLOCK_OPENED = tk.PhotoImage(file=f'{ROOT}/Resources/PwGUI/padlock_opened.png', master=win)
+    PADLOCK_OPENED_HOVERED = tk.PhotoImage(file=f'{ROOT}/Resources/PwGUI/padlock_opened_hov.png', master=win)
+    SHOW = tk.PhotoImage(file=f'{ROOT}/Resources/PwGUI/show.png', master=win)
+    HIDE = tk.PhotoImage(file=f'{ROOT}/Resources/PwGUI/hide.png', master=win)
 
     x = int(win.winfo_screenwidth() / 2 - (WIDTH / 2))
     y = int(win.winfo_screenheight() / 2 - (HEIGHT / 2))
@@ -37,17 +41,17 @@ def ask_password(main_win, to_encrypt, one_file):
         execute.password = None
 
         if not pass_box.get():
-            empty_box_alert(win, "Password")
+            alt.empty_box_alert(win, "Password")
             execute.password = None
             return
 
         if not confirmpass_box.get():
-            empty_box_alert(win, "Conferma password")
+            alt.empty_box_alert(win, "Conferma password")
             execute.password = None
             return
 
         if pass_box.get() != confirmpass_box.get():
-            different_passwords_alert(win)
+            alt.different_passwords_alert(win)
             execute.password = None
             return
 

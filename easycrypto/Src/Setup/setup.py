@@ -11,13 +11,13 @@ import shutil
 from tkinter import Tk
 
 # app modules
-from easycrypto.Src.Setup.config import Config
-from easycrypto.Src.Utils.safedata import Safe
-from easycrypto.Src.Utils.storing import File
-from easycrypto.Src.Utils.logger import Logger
-from easycrypto.Src.Utils.database import Database
-from easycrypto.Src.Utils.firebase import Firebase as Fb
 from easycrypto.Src.Setup.setusernamegui import SetUsernameGui
+from easycrypto.Src.Crypt.Local.database import Database
+from easycrypto.Src.Utils.file_handler import File
+from easycrypto.Src.Utils.config import Config
+from easycrypto.Src.Utils.logger import Logger
+from easycrypto.Src.Utils.safedata import Safe
+from easycrypto.Src.Utils.firebase import Firebase as Fb
 from easycrypto.Src.Utils.paths import APP, LOGS, CRYPT, CONFIG_FILE, DATABASE, PRIVATE_KEY, PUBLIC_KEY
 
 
@@ -68,7 +68,7 @@ class Setup:
 
         os.mkdir(CRYPT)
         self.log.info(f'Directory created: {CRYPT}')
-        os.system("attrib +h " + CRYPT)
+        File(CRYPT).hide()
         self.log.info(f'Directory hidden: {CRYPT}')
 
         open(CONFIG_FILE, 'w')
@@ -97,7 +97,7 @@ class Setup:
         Config.add_pair(key='TotalTranslations', value='0')
         self.log.info(f'New key-value pair added in the configuration file: TotalTranslations = 0')
 
-        File(CONFIG_FILE).lock_file()
+        File(CONFIG_FILE).lock()
         self.log.info('Configuration file locked!')
         self.log.info('Configuration file closed!')
 
@@ -116,12 +116,12 @@ class Setup:
         priv_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.BestAvailableEncryption(Safe.password)
+            encryption_algorithm=serialization.BestAvailableEncryption(Safe.get_privkey_password())
         )
 
         with open(PRIVATE_KEY, 'wb') as f:
             f.write(priv_pem)
-        File(PRIVATE_KEY).lock_file()
+        File(PRIVATE_KEY).lock()
         self.log.info('Private key successfully generated!')
 
         # public key
@@ -147,7 +147,7 @@ class Setup:
             self.log.critical('Public key could not be uploaded to the server...')
             self.shutdown()
 
-        File(PUBLIC_KEY).lock_file()
+        File(PUBLIC_KEY).lock()
         self.log.info('Public key successfully uploaded to the server!')
         self.log.info('Setup successfully COMPLETED!')
 
@@ -160,8 +160,8 @@ class Setup:
         self.log.critical('Deleting environment...')
 
         if os.path.exists(APP) and os.path.exists(DATABASE) and os.path.exists(CONFIG_FILE):
-            File(os.path.join(DATABASE)).unlock_file()
-            File(os.path.join(CONFIG_FILE)).unlock_file()
+            File(os.path.join(DATABASE)).unlock()
+            File(os.path.join(CONFIG_FILE)).unlock()
 
             shutil.rmtree(APP, ignore_errors=True)
 
